@@ -1,0 +1,30 @@
+{
+  "demons": [
+    {
+      "id": 1,
+      "name": "Your First Demon",
+      "creator": "You",
+      "difficulty": "Easy Demon",
+      "stars": 10,
+      "description": "Edit this file to add your own demons. Each demon needs at least a name, creator, and difficulty.",
+      "dateBeaten": "2026-01-01",
+      "musicTitle": "Example Song",
+      "musicArtist": "Example Artist",
+      "showcaseUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "progress": 100
+    },
+    {
+      "id": 2,
+      "name": "A Future Goal",
+      "creator": "Someone",
+      "difficulty": "Hard Demon",
+      "stars": 10,
+      "description": "Set progress to 0 and dateBeaten to 'N/A' for demons you haven't beaten yet.",
+      "dateBeaten": "N/A",
+      "musicTitle": "Another Song",
+      "musicArtist": "Another Artist",
+      "showcaseUrl": "",
+      "progress": 0
+    }
+  ]
+}

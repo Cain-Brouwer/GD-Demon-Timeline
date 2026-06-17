@@ -1,0 +1,419 @@
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import { useTimelineStore } from '../store/timelineStore'
+import AddDemonModal from './AddDemonModal'
+import DocsModal from './DocsModal'
+
+const DIFFICULTY_COLORS = {
+  'Easy Demon': '#00ff00',
+  'Medium Demon': '#ffff00',
+  'Hard Demon': '#ff6600',
+  'Insane Demon': '#ff0000',
+  'Extreme Demon': '#ff00ff',
+}
+
+function useMedia(query) {
+  const [matches, setMatches] = useState(window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const handler = (e) => setMatches(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [query])
+  return matches
+}
+
+function UIOverlay({ config }) {
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showDocs, setShowDocs] = useState(false)
+  const [showMobileList, setShowMobileList] = useState(false)
+  const [showLeftDetail, setShowLeftDetail] = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState(null)
+  const [removeInput, setRemoveInput] = useState('')
+  const demons = useTimelineStore((s) => s.demons)
+  const setGoToPosition = useTimelineStore((s) => s.setGoToPosition)
+  const removeDemon = useTimelineStore((s) => s.removeDemon)
+  const triggerViewAll = useTimelineStore((s) => s.triggerViewAll)
+  const isMobile = useMedia('(max-width: 768px)')
+
+  return createPortal(
+    <>
+      {showAddModal && <AddDemonModal onClose={() => setShowAddModal(false)} />}
+      {showDocs && <DocsModal onClose={() => setShowDocs(false)} />}
+
+      {isMobile && (
+        <button
+          onClick={() => setShowMobileList((v) => !v)}
+          style={{
+            position: 'fixed',
+            top: 10,
+            right: 10,
+            zIndex: 10000,
+            background: showMobileList ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.7)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 8,
+            color: 'white',
+            fontSize: 18,
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontFamily: 'monospace',
+          }}
+        >
+          {showMobileList ? '✕' : '☰'}
+        </button>
+      )}
+
+      {confirmRemove && (
+        <div
+          onClick={() => { setConfirmRemove(null); setRemoveInput('') }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#0d001a',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 12,
+              padding: 24,
+              fontFamily: 'monospace',
+              color: 'white',
+              width: 'min(360px, 88vw)',
+            }}
+          >
+            <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 'bold', marginBottom: 12, color: '#ff6b6b' }}>
+              Remove Demon
+            </div>
+            <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
+              Type "<strong>{confirmRemove.name}</strong>" to confirm removal:
+            </div>
+            <input
+              value={removeInput}
+              onChange={(e) => setRemoveInput(e.target.value)}
+              placeholder="Enter demon name..."
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 6,
+                padding: '8px 10px',
+                color: 'white',
+                fontSize: 12,
+                fontFamily: 'monospace',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && removeInput.toLowerCase() === confirmRemove.name.toLowerCase()) {
+                  removeDemon(confirmRemove.id)
+                  setConfirmRemove(null)
+                  setRemoveInput('')
+                }
+                if (e.key === 'Escape') {
+                  setConfirmRemove(null)
+                  setRemoveInput('')
+                }
+              }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
+              <button
+                onClick={() => { setConfirmRemove(null); setRemoveInput('') }}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: 'white',
+                  padding: '6px 16px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  removeDemon(confirmRemove.id)
+                  setConfirmRemove(null)
+                  setRemoveInput('')
+                }}
+                disabled={removeInput.toLowerCase() !== confirmRemove.name.toLowerCase()}
+                style={{
+                  background: removeInput.toLowerCase() === confirmRemove.name.toLowerCase() ? '#ff6b6b' : 'rgba(255,255,255,0.08)',
+                  border: 'none',
+                  color: removeInput.toLowerCase() === confirmRemove.name.toLowerCase() ? '#0a0015' : 'rgba(255,255,255,0.3)',
+                  padding: '6px 16px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  fontWeight: 'bold',
+                  cursor: removeInput.toLowerCase() === confirmRemove.name.toLowerCase() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          position: isMobile ? 'fixed' : 'absolute',
+          top: isMobile ? 10 : 20,
+          left: isMobile ? 10 : 20,
+          right: isMobile ? 10 : 'auto',
+          background: 'rgba(0,0,0,0.75)',
+          color: 'white',
+          padding: isMobile ? '10px 14px' : '16px 20px',
+          borderRadius: 12,
+          fontFamily: 'monospace',
+          zIndex: 9999,
+          minWidth: isMobile ? 0 : 200,
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}
+      >
+        <h1
+          onClick={() => isMobile && setShowLeftDetail((v) => !v)}
+          style={{
+            fontSize: isMobile ? 13 : 18,
+            margin: '0 0 4px',
+            color: '#c084fc',
+            cursor: isMobile ? 'pointer' : 'default',
+            userSelect: 'none',
+          }}
+        >
+          {isMobile ? (showLeftDetail ? `${config.title} ▼` : `${config.title} ▶`) : config.title}
+        </h1>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
+          <p style={{ margin: 0, fontSize: isMobile ? 11 : 14, opacity: 0.8 }}>
+            Total: {demons.length}
+          </p>
+          <p style={{ margin: 0, fontSize: isMobile ? 10 : 12, opacity: 0.6 }}>
+            <span style={{ color: '#4ade80' }}>{demons.filter((d) => d.progress === 100).length} beaten</span>
+            {' · '}
+            <span style={{ color: '#888' }}>{demons.filter((d) => d.progress === 0).length} future</span>
+          </p>
+        </div>
+        {!isMobile && (
+          <>
+            <div style={{ marginTop: 4, fontSize: 11, opacity: 0.5, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {Object.entries(DIFFICULTY_COLORS).map(([diff]) => {
+                const total = demons.filter((d) => d.difficulty === diff).length
+                const beaten = demons.filter((d) => d.difficulty === diff && d.progress === 100).length
+                return total > 0 ? (
+                  <span key={diff}>{diff.split(' ')[0]} {beaten}/{total}</span>
+                ) : null
+              })}
+            </div>
+            <div
+              style={{
+                marginTop: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              {Object.entries(DIFFICULTY_COLORS).map(([diff, color]) => (
+                <div
+                  key={diff}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontSize: 12,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: color,
+                      display: 'inline-block',
+                      boxShadow: `0 0 6px ${color}`,
+                    }}
+                  />
+                  {diff}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: isMobile && !showMobileList ? 'none' : 'block',
+          position: isMobile ? 'fixed' : 'absolute',
+          top: isMobile ? 'auto' : 20,
+          bottom: isMobile ? 50 : 'auto',
+          right: isMobile ? 10 : 20,
+          left: isMobile ? 10 : 'auto',
+          background: 'rgba(0,0,0,0.75)',
+          color: 'white',
+          padding: isMobile ? '8px 10px' : '12px 16px',
+          borderRadius: 12,
+          fontFamily: 'monospace',
+          zIndex: 9999,
+          minWidth: isMobile ? 0 : 220,
+          overflowY: 'auto',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          maxHeight: isMobile ? '40vh' : 'calc(100vh - 100px)',
+        }}
+      >
+        <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 'bold', marginBottom: 6, color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>Demon List</span>
+          <button
+            onClick={triggerViewAll}
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.6)',
+              padding: '2px 6px',
+              borderRadius: 4,
+              fontSize: 9,
+              fontFamily: 'monospace',
+              cursor: 'pointer',
+            }}
+          >
+            view all
+          </button>
+        </div>
+        {demons.map((demon) => (
+          <div
+            key={demon.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              marginBottom: 3,
+              fontSize: isMobile ? 10 : 12,
+              padding: '2px 3px',
+              borderRadius: 4,
+            }}
+          >
+            <span
+              style={{
+                width: isMobile ? 6 : 8,
+                height: isMobile ? 6 : 8,
+                borderRadius: '50%',
+                background: DIFFICULTY_COLORS[demon.difficulty],
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                flex: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                opacity: demon.progress === 0 ? 0.5 : 1,
+              }}
+            >
+              {demon.name}
+            </span>
+            <button
+              onClick={() => setGoToPosition(demon.position)}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'white',
+                padding: isMobile ? '1px 5px' : '2px 8px',
+                borderRadius: 4,
+                fontSize: isMobile ? 8 : 10,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              go to
+            </button>
+            <button
+              onClick={() => { setConfirmRemove(demon); setRemoveInput('') }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#ff4444',
+                fontSize: isMobile ? 10 : 12,
+                cursor: 'pointer',
+                padding: '1px 3px',
+                lineHeight: '12px',
+                opacity: 0.7,
+              }}
+              title="Remove"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={() => setShowAddModal(true)}
+          style={{
+            width: '100%',
+            marginTop: 6,
+            background: 'rgba(192,132,252,0.15)',
+            border: '1px dashed rgba(192,132,252,0.3)',
+            color: '#c084fc',
+            padding: isMobile ? '4px 0' : '6px 0',
+            borderRadius: 6,
+            fontSize: isMobile ? 10 : 12,
+            fontFamily: 'monospace',
+            cursor: 'pointer',
+          }}
+        >
+          + Add Custom Demon
+        </button>
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          bottom: isMobile ? 8 : 20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(0,0,0,0.6)',
+          color: 'rgba(255,255,255,0.5)',
+          padding: isMobile ? '4px 10px' : '8px 16px',
+          borderRadius: 8,
+          fontFamily: 'monospace',
+          fontSize: isMobile ? 9 : 12,
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {isMobile ? 'Drag · Scroll · Hover' : 'Drag to rotate · Scroll to zoom · Hover for details'}
+        <span
+          onClick={() => setShowDocs(true)}
+          style={{
+            marginLeft: isMobile ? 8 : 12,
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            color: 'rgba(255,255,255,0.4)',
+          }}
+        >
+          docs
+        </span>
+      </div>
+    </>,
+    document.body
+  )
+}
+
+export default UIOverlay
