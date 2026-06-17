@@ -14,6 +14,9 @@ const APP_KEY = import.meta.env.VITE_APP_KEY
 function App() {
   const initDemons = useTimelineStore((s) => s.initDemons)
   const setUser = useTimelineStore((s) => s.setUser)
+  const user = useTimelineStore((s) => s.user)
+  const cloudLoad = useTimelineStore((s) => s.cloudLoad)
+  const cloudSave = useTimelineStore((s) => s.cloudSave)
   const youtubeVideoId = useTimelineStore((s) => s.youtubeVideoId)
 
   useEffect(() => {
@@ -30,6 +33,17 @@ function App() {
     })
     return () => subscription.unsubscribe()
   }, [setUser])
+
+  useEffect(() => {
+    if (!user || !supabase) return
+    const timer = setTimeout(async () => {
+      await cloudLoad()
+      if (useTimelineStore.getState().cloudStatus === 'idle') {
+        cloudSave()
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [user, cloudLoad, cloudSave])
 
   if (!APP_KEY) {
     return (

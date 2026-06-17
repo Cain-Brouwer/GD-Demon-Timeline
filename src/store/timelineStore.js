@@ -89,6 +89,7 @@ export const useTimelineStore = create(
         )
         set({ cloudStatus: error ? 'error' : 'saved' })
         if (error) console.error('cloudSave error:', error)
+        else setTimeout(() => { if (get().cloudStatus === 'saved') set({ cloudStatus: 'idle' }) }, 2500)
       },
 
       cloudLoad: async () => {
@@ -100,13 +101,14 @@ export const useTimelineStore = create(
           .select('demons')
           .eq('user_id', state.user.id)
           .single()
-        if (error) {
+        if (error && error.code !== 'PGRST116') {
           set({ cloudStatus: 'error' })
           console.error('cloudLoad error:', error)
           return
         }
         if (data?.demons) {
           set({ demons: assignPositions(data.demons), cloudStatus: 'saved' })
+          setTimeout(() => { if (get().cloudStatus === 'saved') set({ cloudStatus: 'idle' }) }, 2500)
         } else {
           set({ cloudStatus: 'idle' })
         }

@@ -1,9 +1,17 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabase } from '../lib/supabase'
+import { useTimelineStore } from '../store/timelineStore'
 
 function AuthModal({ onClose }) {
+  const user = useTimelineStore((s) => s.user)
+
+  useEffect(() => {
+    if (user) onClose()
+  }, [user, onClose])
+
   if (!supabase) return null
 
   return createPortal(
