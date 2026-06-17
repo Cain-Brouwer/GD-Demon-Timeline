@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -203,18 +203,86 @@ function CameraAnimator() {
   return null
 }
 
+function Starfield() {
+  const starsRef = useRef()
+  const positions = useMemo(() => {
+    const count = 2500
+    const arr = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
+      arr[i * 3] = (Math.random() - 0.5) * 600
+      arr[i * 3 + 1] = (Math.random() - 0.5) * 300
+      arr[i * 3 + 2] = (Math.random() - 0.5) * 600 - 150
+    }
+    return arr
+  }, [])
+
+  useFrame((state) => {
+    if (starsRef.current) {
+      starsRef.current.rotation.y += 0.00015
+    }
+  })
+
+  return (
+    <points ref={starsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={2500} array={positions} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.35} color="white" transparent opacity={0.5} sizeAttenuation depthWrite={false} />
+    </points>
+  )
+}
+
+function FloatingParticles() {
+  const ref = useRef()
+  const count = 300
+  const [positions, speeds] = useMemo(() => {
+    const pos = new Float32Array(count * 3)
+    const spd = new Float32Array(count)
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 300
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 100
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 200
+      spd[i] = 0.2 + Math.random() * 0.5
+    }
+    return [pos, spd]
+  }, [])
+
+  useFrame((state) => {
+    if (!ref.current) return
+    const t = state.clock.getElapsedTime()
+    const pos = ref.current.geometry.attributes.position.array
+    for (let i = 0; i < count; i++) {
+      pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.002
+    }
+    ref.current.geometry.attributes.position.needsUpdate = true
+  })
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.15} color="#c084fc" transparent opacity={0.15} sizeAttenuation depthWrite={false} />
+    </points>
+  )
+}
+
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
 
   return (
     <>
-      <ambientLight intensity={0.7} />
-      <pointLight position={[20, 20, 20]} intensity={1.2} />
-      <pointLight position={[-20, 20, 20]} intensity={0.8} />
+      <fog attach="fog" args={['#0a0015', 60, 220]} />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[30, 40, 30]} intensity={1.5} />
+      <directionalLight position={[-30, 20, 20]} intensity={0.6} />
+      <pointLight position={[0, 0, 0]} intensity={0.8} color="#c084fc" />
 
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
 
+      <Starfield />
+      <FloatingParticles />
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
