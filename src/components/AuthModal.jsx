@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
@@ -7,9 +7,14 @@ import { useTimelineStore } from '../store/timelineStore'
 
 function AuthModal({ onClose }) {
   const user = useTimelineStore((s) => s.user)
+  const wasAlreadyLoggedIn = useRef(!!user)
 
   useEffect(() => {
-    if (user) onClose()
+    if (user && !wasAlreadyLoggedIn.current) {
+      wasAlreadyLoggedIn.current = true
+      const timer = setTimeout(onClose, 300)
+      return () => clearTimeout(timer)
+    }
   }, [user, onClose])
 
   if (!supabase) return null

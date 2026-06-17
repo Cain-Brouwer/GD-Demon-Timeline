@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import TimelineScene from './components/TimelineScene'
 import UIOverlay from './components/UIOverlay'
 import YouTubeModal from './components/YouTubeModal'
@@ -18,6 +18,7 @@ function App() {
   const cloudLoad = useTimelineStore((s) => s.cloudLoad)
   const cloudSave = useTimelineStore((s) => s.cloudSave)
   const youtubeVideoId = useTimelineStore((s) => s.youtubeVideoId)
+  const syncedRef = useRef(false)
 
   useEffect(() => {
     if (APP_KEY) initDemons(demonData.demons)
@@ -35,13 +36,22 @@ function App() {
   }, [setUser])
 
   useEffect(() => {
-    if (!user || !supabase) return
+    if (!user) {
+      syncedRef.current = false
+      return
+    }
+    if (!supabase || syncedRef.current) return
+    syncedRef.current = true
     const timer = setTimeout(async () => {
-      await cloudLoad()
-      if (useTimelineStore.getState().cloudStatus === 'idle') {
-        cloudSave()
+      try {
+        await cloudLoad()
+        if (useTimelineStore.getState().cloudStatus === 'idle') {
+          cloudSave()
+        }
+      } catch (e) {
+        console.error('auto-sync error:', e)
       }
-    }, 500)
+    }, 1000)
     return () => clearTimeout(timer)
   }, [user, cloudLoad, cloudSave])
 

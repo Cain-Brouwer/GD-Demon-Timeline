@@ -83,34 +83,48 @@ export const useTimelineStore = create(
         const state = get()
         if (!state.user || !supabase) return
         set({ cloudStatus: 'saving' })
-        const { error } = await supabase.from('timelines').upsert(
-          { user_id: state.user.id, demons: JSON.parse(JSON.stringify(state.demons)), updated_at: new Date().toISOString() },
-          { onConflict: 'user_id' }
-        )
-        set({ cloudStatus: error ? 'error' : 'saved' })
-        if (error) console.error('cloudSave error:', error)
-        else setTimeout(() => { if (get().cloudStatus === 'saved') set({ cloudStatus: 'idle' }) }, 2500)
+        try {
+          const { error } = await supabase.from('timelines').upsert(
+            { user_id: state.user.id, demons: JSON.parse(JSON.stringify(state.demons)), updated_at: new Date().toISOString() },
+            { onConflict: 'user_id' }
+          )
+          if (error) {
+            console.error('cloudSave error:', error)
+            set({ cloudStatus: 'error' })
+            return
+          }
+          set({ cloudStatus: 'saved' })
+          setTimeout(() => { if (get().cloudStatus === 'saved') set({ cloudStatus: 'idle' }) }, 2500)
+        } catch (e) {
+          console.error('cloudSave exception:', e)
+          set({ cloudStatus: 'error' })
+        }
       },
 
       cloudLoad: async () => {
         const state = get()
         if (!state.user || !supabase) return
         set({ cloudStatus: 'saving' })
-        const { data, error } = await supabase
-          .from('timelines')
-          .select('demons')
-          .eq('user_id', state.user.id)
-          .single()
-        if (error && error.code !== 'PGRST116') {
+        try {
+          const { data, error } = await supabase
+            .from('timelines')
+            .select('demons')
+            .eq('user_id', state.user.id)
+            .single()
+          if (error && error.code !== 'PGRST116') {
+            console.error('cloudLoad error:', error)
+            set({ cloudStatus: 'error' })
+            return
+          }
+          if (data?.demons) {
+            set({ demons: assignPositions(data.demons), cloudStatus: 'saved' })
+            setTimeout(() => { if (get().cloudStatus === 'saved') set({ cloudStatus: 'idle' }) }, 2500)
+          } else {
+            set({ cloudStatus: 'idle' })
+          }
+        } catch (e) {
+          console.error('cloudLoad exception:', e)
           set({ cloudStatus: 'error' })
-          console.error('cloudLoad error:', error)
-          return
-        }
-        if (data?.demons) {
-          set({ demons: assignPositions(data.demons), cloudStatus: 'saved' })
-          setTimeout(() => { if (get().cloudStatus === 'saved') set({ cloudStatus: 'idle' }) }, 2500)
-        } else {
-          set({ cloudStatus: 'idle' })
         }
       },
 
