@@ -1,13 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabase } from '../lib/supabase'
 import { useTimelineStore } from '../store/timelineStore'
 
 function AuthModal({ onClose }) {
   const user = useTimelineStore((s) => s.user)
   const wasAlreadyLoggedIn = useRef(!!user)
+  const [view, setView] = useState('sign_in')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     if (user && !wasAlreadyLoggedIn.current) {
@@ -18,6 +21,55 @@ function AuthModal({ onClose }) {
   }, [user, onClose])
 
   if (!supabase) return null
+
+  const handleSignIn = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) setMessage(error.message)
+    setLoading(false)
+  }
+
+  const handleSignUp = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+    const { error } = await supabase.auth.signUp({ email, password })
+    if (error) {
+      setMessage(error.message)
+    } else {
+      setMessage('Check your email for confirmation!')
+    }
+    setLoading(false)
+  }
+
+  const inputStyle = {
+    width: '100%',
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 6,
+    padding: '10px 12px',
+    color: 'white',
+    fontSize: 13,
+    fontFamily: 'monospace',
+    outline: 'none',
+    boxSizing: 'border-box',
+  }
+
+  const btnStyle = {
+    width: '100%',
+    background: '#c084fc',
+    border: 'none',
+    borderRadius: 6,
+    padding: '10px 12px',
+    color: '#0a0015',
+    fontSize: 13,
+    fontFamily: 'monospace',
+    fontWeight: 'bold',
+    cursor: loading ? 'not-allowed' : 'pointer',
+    opacity: loading ? 0.5 : 1,
+  }
 
   return createPortal(
     <div
@@ -41,13 +93,13 @@ function AuthModal({ onClose }) {
           padding: 24,
           fontFamily: 'monospace',
           color: 'white',
-          width: 'min(380px, 90vw)',
-          maxHeight: '90vh',
-          overflowY: 'auto',
+          width: 'min(360px, 90vw)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 16, fontWeight: 'bold', color: '#c084fc' }}>Sign In</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 'bold', color: '#c084fc' }}>
+            {view === 'sign_in' ? 'Sign In' : 'Create Account'}
+          </div>
           <button
             onClick={onClose}
             style={{
@@ -63,58 +115,73 @@ function AuthModal({ onClose }) {
             ✕
           </button>
         </div>
-        <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#c084fc',
-                  brandAccent: '#a855f7',
-                  brandButtonText: 'white',
-                  defaultButtonBackground: 'rgba(255,255,255,0.08)',
-                  defaultButtonBackgroundHover: 'rgba(255,255,255,0.12)',
-                  inputBackground: 'rgba(255,255,255,0.06)',
-                  inputBorder: 'rgba(255,255,255,0.12)',
-                  inputBorderHover: 'rgba(255,255,255,0.2)',
-                  inputBorderFocus: '#c084fc',
-                  inputText: 'white',
-                  inputLabelText: 'rgba(255,255,255,0.7)',
-                  messageText: 'rgba(255,255,255,0.6)',
-                  messageTextDanger: '#ff6b6b',
-                  anchorTextColor: '#c084fc',
-                  dividerBackground: 'rgba(255,255,255,0.1)',
-                },
-                space: {
-                  inputPadding: '10px 12px',
-                  buttonPadding: '10px 12px',
-                },
-                fontSizes: {
-                  baseBodySize: '13px',
-                  baseInputSize: '13px',
-                  baseLabelSize: '12px',
-                  baseButtonSize: '13px',
-                },
-                radii: {
-                  borderRadiusButton: '6px',
-                  buttonBorderRadius: '6px',
-                  inputBorderRadius: '6px',
-                },
-              },
-            },
-            style: {
-              button: { fontFamily: 'monospace' },
-              input: { fontFamily: 'monospace' },
-              label: { fontFamily: 'monospace' },
-              message: { fontFamily: 'monospace' },
-              divider: { fontFamily: 'monospace' },
-              anchor: { fontFamily: 'monospace' },
-            },
-          }}
-          providers={[]}
-          onlyThirdPartyProviders={false}
-        />
+
+        {message && (
+          <div style={{
+            fontSize: 12,
+            color: message.includes('Check your email') ? '#4ade80' : '#ff6b6b',
+            marginBottom: 12,
+            padding: '8px 10px',
+            background: message.includes('Check your email') ? 'rgba(74,222,128,0.08)' : 'rgba(255,107,107,0.08)',
+            borderRadius: 6,
+          }}>
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={view === 'sign_in' ? handleSignIn : handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Email</div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              style={inputStyle}
+              required
+              autoFocus
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Password</div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              style={inputStyle}
+              required
+              minLength={6}
+            />
+          </div>
+          <button type="submit" style={btnStyle} disabled={loading}>
+            {loading ? '...' : view === 'sign_in' ? 'Sign In' : 'Create Account'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: 16, textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+          {view === 'sign_in' ? (
+            <>
+              No account?{' '}
+              <span
+                onClick={() => { setView('sign_up'); setMessage('') }}
+                style={{ color: '#c084fc', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Create one
+              </span>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <span
+                onClick={() => { setView('sign_in'); setMessage('') }}
+                style={{ color: '#c084fc', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Sign in
+              </span>
+            </>
+          )}
+        </div>
       </div>
     </div>,
     document.body
