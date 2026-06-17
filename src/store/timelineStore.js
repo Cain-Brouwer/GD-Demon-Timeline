@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
+import demonData from '../data/demons.json'
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -130,7 +131,8 @@ export const useTimelineStore = create(
 
       signOut: async () => {
         if (supabase) await supabase.auth.signOut()
-        set({ user: null, cloudStatus: 'idle', demons: [], initialised: false })
+        const seed = assignPositions(JSON.parse(JSON.stringify(demonData.demons)))
+        set({ user: null, cloudStatus: 'idle', demons: seed, initialised: true })
       },
     }),
     {
