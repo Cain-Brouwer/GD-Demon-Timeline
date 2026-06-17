@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 
 import easyIcon from '../assets/icons/Easy-Demon.png'
@@ -28,8 +27,6 @@ const ICON_MAP = {
 
 function DemonSphere({ demon }) {
   const floatRef = useRef()
-  const ringRef = useRef()
-  const orbitRef = useRef()
   const [hovered, setHovered] = useState(false)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const selectDemon = useTimelineStore((s) => s.selectDemon)
@@ -45,13 +42,6 @@ function DemonSphere({ demon }) {
     if (floatRef.current) {
       floatRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
     }
-    if (ringRef.current) {
-      ringRef.current.rotation.x = Math.sin(t * 0.4) * 0.2
-      ringRef.current.rotation.z += 0.008
-    }
-    if (orbitRef.current) {
-      orbitRef.current.rotation.y += 0.015 + (hovered || isSelected ? 0.03 : 0)
-    }
   })
 
   const handleClick = (e) => {
@@ -59,32 +49,9 @@ function DemonSphere({ demon }) {
     selectDemon(demon)
   }
 
-  const color = new THREE.Color(diffColor)
-
   return (
     <group position={[x, 0, z]}>
       <group ref={floatRef}>
-        <mesh>
-          <sphereGeometry args={[1.1, 24, 24]} />
-          <meshBasicMaterial color={diffColor} transparent opacity={isFuture ? 0.08 : 0.15} depthWrite={false} />
-        </mesh>
-
-        <mesh ref={ringRef}>
-          <ringGeometry args={[1.6, 2.1, 48]} />
-          <meshBasicMaterial color={diffColor} transparent opacity={isFuture ? 0.15 : 0.3} side={THREE.DoubleSide} depthWrite={false} />
-        </mesh>
-
-        <group ref={orbitRef}>
-          <mesh rotation={[0, 0, Math.PI / 4]}>
-            <ringGeometry args={[2.5, 2.55, 48]} />
-            <meshBasicMaterial color="white" transparent opacity={isFuture ? 0.05 : 0.12} side={THREE.DoubleSide} depthWrite={false} />
-          </mesh>
-          <mesh rotation={[0, 0, -Math.PI / 4]}>
-            <ringGeometry args={[2.5, 2.55, 48]} />
-            <meshBasicMaterial color={diffColor} transparent opacity={isFuture ? 0.05 : 0.12} side={THREE.DoubleSide} depthWrite={false} />
-          </mesh>
-        </group>
-
         <Html position={[0, 0, 0]} center zIndexRange={[0, 0]}>
           <div
             onClick={handleClick}
