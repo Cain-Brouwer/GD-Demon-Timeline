@@ -25,6 +25,13 @@ function App() {
   }, [initDemons])
 
   useEffect(() => {
+    if (!user && APP_KEY) {
+      const demons = useTimelineStore.getState().demons
+      if (demons.length === 0) initDemons(demonData.demons)
+    }
+  }, [user, initDemons])
+
+  useEffect(() => {
     if (!supabase) return
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) setUser(session.user)

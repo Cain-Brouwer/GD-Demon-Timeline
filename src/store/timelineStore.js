@@ -130,7 +130,7 @@ export const useTimelineStore = create(
 
       signOut: async () => {
         if (supabase) await supabase.auth.signOut()
-        set({ user: null, cloudStatus: 'idle' })
+        set({ user: null, cloudStatus: 'idle', demons: [], initialised: false })
       },
     }),
     {
