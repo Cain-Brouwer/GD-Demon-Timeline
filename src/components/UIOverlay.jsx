@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useTimelineStore } from '../store/timelineStore'
 import AddDemonModal from './AddDemonModal'
 import DocsModal from './DocsModal'
+import AuthModal from './AuthModal'
 
 const DIFFICULTY_COLORS = {
   'Easy Demon': '#00ff00',
@@ -26,11 +27,17 @@ function useMedia(query) {
 function UIOverlay({ config }) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
   const [showMobileList, setShowMobileList] = useState(false)
   const [showLeftDetail, setShowLeftDetail] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(null)
   const [removeInput, setRemoveInput] = useState('')
   const demons = useTimelineStore((s) => s.demons)
+  const user = useTimelineStore((s) => s.user)
+  const cloudStatus = useTimelineStore((s) => s.cloudStatus)
+  const cloudSave = useTimelineStore((s) => s.cloudSave)
+  const cloudLoad = useTimelineStore((s) => s.cloudLoad)
+  const signOut = useTimelineStore((s) => s.signOut)
   const setGoToPosition = useTimelineStore((s) => s.setGoToPosition)
   const removeDemon = useTimelineStore((s) => s.removeDemon)
   const triggerViewAll = useTimelineStore((s) => s.triggerViewAll)
@@ -40,6 +47,7 @@ function UIOverlay({ config }) {
     <>
       {showAddModal && <AddDemonModal onClose={() => setShowAddModal(false)} />}
       {showDocs && <DocsModal onClose={() => setShowDocs(false)} />}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       {isMobile && (
         <button
@@ -278,22 +286,88 @@ function UIOverlay({ config }) {
       >
         <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 'bold', marginBottom: 6, color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>Demon List</span>
-          <button
-            onClick={triggerViewAll}
-            style={{
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: 'rgba(255,255,255,0.6)',
-              padding: '2px 6px',
-              borderRadius: 4,
-              fontSize: 9,
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-            }}
-          >
-            view all
-          </button>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            {user ? (
+              <>
+                <button
+                  onClick={cloudSave}
+                  disabled={cloudStatus === 'saving'}
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    color: cloudStatus === 'saved' ? '#4ade80' : 'rgba(255,255,255,0.6)',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    fontSize: 9,
+                    fontFamily: 'monospace',
+                    cursor: 'pointer',
+                  }}
+                  title={cloudStatus === 'saved' ? 'Saved' : 'Save to cloud'}
+                >
+                  {cloudStatus === 'saving' ? '...' : cloudStatus === 'saved' ? 'saved' : 'save'}
+                </button>
+                <button
+                  onClick={cloudLoad}
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    color: 'rgba(255,255,255,0.6)',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    fontSize: 9,
+                    fontFamily: 'monospace',
+                    cursor: 'pointer',
+                  }}
+                  title="Load from cloud"
+                >
+                  load
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                style={{
+                  background: 'rgba(192,132,252,0.15)',
+                  border: '1px solid rgba(192,132,252,0.3)',
+                  color: '#c084fc',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  fontSize: 9,
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                }}
+              >
+                sign in
+              </button>
+            )}
+            <button
+              onClick={triggerViewAll}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.6)',
+                padding: '2px 6px',
+                borderRadius: 4,
+                fontSize: 9,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+              }}
+            >
+              view all
+            </button>
+          </div>
         </div>
+        {user && (
+          <div style={{ fontSize: isMobile ? 9 : 10, color: 'rgba(255,255,255,0.4)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>{user.email}</span>
+            <span
+              onClick={signOut}
+              style={{ textDecoration: 'underline', cursor: 'pointer', color: 'rgba(255,255,255,0.3)' }}
+            >
+              sign out
+            </span>
+          </div>
+        )}
         {demons.map((demon) => (
           <div
             key={demon.id}

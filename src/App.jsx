@@ -4,6 +4,7 @@ import UIOverlay from './components/UIOverlay'
 import YouTubeModal from './components/YouTubeModal'
 import YouTubeMiniPlayer from './components/YouTubeMiniPlayer'
 import { useTimelineStore } from './store/timelineStore'
+import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
 import config from './timeline.config'
 import './App.css'
@@ -12,11 +13,23 @@ const APP_KEY = import.meta.env.VITE_APP_KEY
 
 function App() {
   const initDemons = useTimelineStore((s) => s.initDemons)
+  const setUser = useTimelineStore((s) => s.setUser)
   const youtubeVideoId = useTimelineStore((s) => s.youtubeVideoId)
 
   useEffect(() => {
     if (APP_KEY) initDemons(demonData.demons)
   }, [initDemons])
+
+  useEffect(() => {
+    if (!supabase) return
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setUser(session.user)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [setUser])
 
   if (!APP_KEY) {
     return (

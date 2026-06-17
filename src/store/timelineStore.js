@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '../lib/supabase'
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -34,6 +35,11 @@ export const useTimelineStore = create(
       youtubeSoundOnly: false,
       setYoutubeVideo: (id, soundOnly = false) => set({ youtubeVideoId: id, youtubeSoundOnly: soundOnly }),
       clearYoutubeVideo: () => set({ youtubeVideoId: null, youtubeSoundOnly: false }),
+
+      user: null,
+      cloudStatus: 'idle',
+
+      setUser: (user) => set({ user }),
 
       initDemons: (data) => {
         const state = get()
@@ -71,6 +77,44 @@ export const useTimelineStore = create(
         if (state.selectedDemon?.id === id) {
           set({ selectedDemon: null })
         }
+      },
+
+      cloudSave: async () => {
+        const state = get()
+        if (!state.user || !supabase) return
+        set({ cloudStatus: 'saving' })
+        const { error } = await supabase.from('timelines').upsert(
+          { user_id: state.user.id, demons: JSON.parse(JSON.stringify(state.demons)), updated_at: new Date().toISOString() },
+          { onConflict: 'user_id' }
+        )
+        set({ cloudStatus: error ? 'error' : 'saved' })
+        if (error) console.error('cloudSave error:', error)
+      },
+
+      cloudLoad: async () => {
+        const state = get()
+        if (!state.user || !supabase) return
+        set({ cloudStatus: 'saving' })
+        const { data, error } = await supabase
+          .from('timelines')
+          .select('demons')
+          .eq('user_id', state.user.id)
+          .single()
+        if (error) {
+          set({ cloudStatus: 'error' })
+          console.error('cloudLoad error:', error)
+          return
+        }
+        if (data?.demons) {
+          set({ demons: assignPositions(data.demons), cloudStatus: 'saved' })
+        } else {
+          set({ cloudStatus: 'idle' })
+        }
+      },
+
+      signOut: async () => {
+        if (supabase) await supabase.auth.signOut()
+        set({ user: null, cloudStatus: 'idle' })
       },
     }),
     {
