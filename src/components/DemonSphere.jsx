@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
+import { useTexture, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 
@@ -26,8 +26,25 @@ const ICON_MAP = {
   'Extreme Demon': extremeIcon,
 }
 
+const glowCircle = (() => {
+  const canvas = document.createElement('canvas')
+  canvas.width = 64
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+  g.addColorStop(0, 'rgba(255,255,255,0.25)')
+  g.addColorStop(0.4, 'rgba(255,255,255,0.08)')
+  g.addColorStop(0.7, 'rgba(255,255,255,0.02)')
+  g.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 64, 64)
+  return new THREE.CanvasTexture(canvas)
+})()
+
 function DemonSphere({ demon }) {
-  const floatRef = useRef()
+  const spriteRef = useRef()
+  const glowRef = useRef()
+  const nameRef = useRef()
   const scaleRef = useRef(1)
   const ringRef = useRef()
   const [hovered, setHovered] = useState(false)
@@ -37,24 +54,33 @@ function DemonSphere({ demon }) {
   const diffColor = DIFFICULTY_COLORS[demon.difficulty] || '#ffffff'
   const [x, , z] = demon.position
   const isSelected = selectedDemon?.id === demon.id
-  const iconSrc = ICON_MAP[demon.difficulty] || easyIcon
   const isFuture = demon.progress === 0
-  const targetScale = hovered || isSelected ? 1.35 : 1
+  const targetScale = hovered || isSelected ? 2.7 : 2
   const vec3 = useRef(new THREE.Vector3())
+
+  const allTextures = useTexture(ICON_MAP)
+  const iconTexture = allTextures[demon.difficulty]
 
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
     vec3.current.set(x, 0, z)
     const dist = camera.position.distanceTo(vec3.current)
 
-    if (floatRef.current) {
-      floatRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
-      floatRef.current.visible = dist < 60
+    if (spriteRef.current) {
+      spriteRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
+      spriteRef.current.visible = dist < 80
     }
-    const grp = floatRef.current
-    if (grp) {
+    if (glowRef.current) {
+      glowRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
+      glowRef.current.visible = dist < 80
+    }
+    if (spriteRef.current) {
       scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
-      grp.scale.setScalar(scaleRef.current)
+      spriteRef.current.scale.setScalar(scaleRef.current)
+      glowRef.current.scale.setScalar(scaleRef.current * 1.25)
+    }
+    if (nameRef.current) {
+      nameRef.current.visible = dist < 40
     }
     if (ringRef.current) {
       ringRef.current.rotation.z += 0.008
@@ -70,7 +96,7 @@ function DemonSphere({ demon }) {
     selectDemon(demon)
   }
 
-  const glowSize = hovered || isSelected ? 90 : 60
+  const colorObj = useMemo(() => new THREE.Color(diffColor), [diffColor])
 
   return (
     <group position={[x, 0, z]}>
@@ -83,100 +109,55 @@ function DemonSphere({ demon }) {
           depthWrite={false}
         />
       </mesh>
-      <group ref={floatRef}>
-        <Html position={[0, 0, 0]} center zIndexRange={[0, 0]}>
-          <div
-            onClick={handleClick}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            style={{
-              width: glowSize,
-              height: glowSize,
-              cursor: 'pointer',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'width 0.25s ease, height 0.25s ease',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                background: isFuture
-                  ? `radial-gradient(circle, rgba(100,100,100,0.3) 0%, rgba(100,100,100,0.15) 50%, transparent 70%)`
-                  : `radial-gradient(circle, ${diffColor}44 0%, ${diffColor}22 50%, transparent 70%)`,
-                border: isFuture ? '1px dashed rgba(255,255,255,0.15)' : 'none',
-                boxShadow: isFuture
-                  ? 'none'
-                  : (hovered || isSelected ? `0 0 20px ${diffColor}66` : `0 0 6px ${diffColor}22`),
-                pointerEvents: 'none',
-                transition: 'box-shadow 0.3s ease',
-              }}
-            />
-            <img
-              src={iconSrc}
-              alt={demon.name}
-              style={{
-                width: '80%',
-                height: '80%',
-                objectFit: 'contain',
-                display: 'block',
-                imageRendering: 'auto',
-                opacity: isFuture ? 0.4 : 1,
-                filter: isFuture ? 'grayscale(0.6)' : 'none',
-                transition: 'opacity 0.2s ease',
-              }}
-            />
-            {isFuture && (
-              <span
-                style={{
-                  position: 'absolute',
-                  bottom: -2,
-                  right: -2,
-                  background: 'rgba(255,255,255,0.1)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  borderRadius: 4,
-                  padding: '1px 4px',
-                  fontSize: 8,
-                  fontFamily: 'monospace',
-                  color: 'rgba(255,255,255,0.5)',
-                  lineHeight: '12px',
-                  pointerEvents: 'none',
-                }}
-              >
-                future
-              </span>
-            )}
-          </div>
-        </Html>
 
-        <Html
-          position={[0, 0, 0]}
-          center
-          zIndexRange={[0, 0]}
-          style={{ pointerEvents: 'none' }}
+      <sprite
+        ref={glowRef}
+        scale={[2.5, 2.5, 1]}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        onClick={handleClick}
+      >
+        <spriteMaterial
+          map={glowCircle}
+          color={isFuture ? '#666666' : colorObj}
+          transparent
+          opacity={isFuture ? 0.1 : 0.25}
+          depthWrite={false}
+        />
+      </sprite>
+
+      <sprite
+        ref={spriteRef}
+        scale={[2, 2, 1]}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        onClick={handleClick}
+      >
+        <spriteMaterial
+          map={iconTexture}
+          transparent
+          opacity={isFuture ? 0.35 : 1}
+          depthWrite={false}
+        />
+      </sprite>
+
+      <Html ref={nameRef} position={[0, 0, 0]} center style={{ pointerEvents: 'none' }}>
+        <span
+          style={{
+            color: isFuture ? 'rgba(255,255,255,0.4)' : 'white',
+            fontSize: hovered || isSelected ? 13 : 12,
+            fontFamily: 'monospace',
+            textShadow: '0 0 8px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.9)',
+            whiteSpace: 'nowrap',
+            transform: 'translateY(-30px)',
+            display: 'inline-block',
+            transition: 'font-size 0.2s ease',
+            opacity: hovered || isSelected ? 1 : 0.8,
+          }}
         >
-          <span
-            style={{
-              color: isFuture ? 'rgba(255,255,255,0.4)' : 'white',
-              fontSize: hovered || isSelected ? 13 : 12,
-              fontFamily: 'monospace',
-              textShadow: '0 0 8px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.9)',
-              whiteSpace: 'nowrap',
-              transform: 'translateY(-38px)',
-              display: 'inline-block',
-              transition: 'font-size 0.2s ease',
-              opacity: hovered || isSelected ? 1 : 0.8,
-            }}
-          >
-            {demon.name}
-          </span>
-        </Html>
-      </group>
+          {demon.name}
+        </span>
+      </Html>
     </group>
   )
 }
