@@ -772,7 +772,6 @@ function SceneContent() {
   useFrame(({ camera }) => {
     if (voidGroup.current) {
       voidGroup.current.position.x = camera.position.x
-      voidGroup.current.position.z = camera.position.z * 0.3
     }
   })
 
