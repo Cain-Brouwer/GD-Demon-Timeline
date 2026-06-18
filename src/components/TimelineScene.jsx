@@ -335,9 +335,9 @@ function Nebula({ bounds }) {
     for (let i = 0; i < count; i++) {
       const c = colorList[Math.floor(Math.random() * colorList.length)]
       const s = 30 + Math.random() * 100
-      const x = bounds.centerX + (Math.random() - 0.5) * bounds.width * 1.2
+      const x = bounds.centerX + (Math.random() - 0.5) * (bounds.width + 200)
       const y = (Math.random() - 0.5) * 200 + 10
-      const z = (Math.random() - 0.5) * bounds.width * 0.6
+      const z = (Math.random() - 0.5) * 500
       const bright = 0.3 + Math.random() * 0.7
       data.current[i] = {
         baseX: x, baseY: y, baseZ: z,
