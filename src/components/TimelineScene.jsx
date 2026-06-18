@@ -752,7 +752,7 @@ function SceneContent() {
 
   return (
     <>
-      <EffectComposer>
+      <EffectComposer resolutionScale={0.5}>
         {bloomEnabled && <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />}
       </EffectComposer>
 
