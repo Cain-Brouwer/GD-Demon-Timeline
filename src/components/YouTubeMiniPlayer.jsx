@@ -15,8 +15,10 @@ function useMedia(query) {
 
 function getYouTubeId(url) {
   try {
-    const params = new URLSearchParams(new URL(url).search)
-    return params.get('v')
+    const u = new URL(url)
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('/')[0]
+    if (u.pathname.includes('/embed/')) return u.pathname.split('/embed/')[1]
+    return u.searchParams.get('v')
   } catch {
     return null
   }
