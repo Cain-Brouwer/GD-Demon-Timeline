@@ -326,6 +326,7 @@ function TimelineScene() {
       camera={{ position: [0, 30, 50], fov: 50 }}
       style={{ background: '#0a0015' }}
       onPointerMissed={clearSelection}
+      gl={{ preserveDrawingBuffer: true }}
     >
       <SceneContent />
     </Canvas>
