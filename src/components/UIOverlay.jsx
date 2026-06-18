@@ -58,12 +58,14 @@ function UIOverlay({ config }) {
   const takeScreenshot = () => {
     const canvas = document.querySelector('canvas')
     if (!canvas) return
-    const link = document.createElement('a')
-    link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
-    setFlash(true)
-    setTimeout(() => setFlash(false), 600)
+    requestAnimationFrame(() => {
+      const link = document.createElement('a')
+      link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+      setFlash(true)
+      setTimeout(() => setFlash(false), 600)
+    })
   }
 
   useEffect(() => {
