@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
+import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 
 import easyIcon from '../assets/icons/Easy-Demon.png'
@@ -28,6 +29,7 @@ const ICON_MAP = {
 function DemonSphere({ demon }) {
   const floatRef = useRef()
   const scaleRef = useRef(1)
+  const ringRef = useRef()
   const [hovered, setHovered] = useState(false)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const selectDemon = useTimelineStore((s) => s.selectDemon)
@@ -48,6 +50,12 @@ function DemonSphere({ demon }) {
       scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
       grp.scale.setScalar(scaleRef.current)
     }
+    if (ringRef.current) {
+      ringRef.current.rotation.z += 0.008
+      ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
+      const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
+      ringRef.current.scale.setScalar(s)
+    }
   })
 
   const handleClick = (e) => {
@@ -59,6 +67,15 @@ function DemonSphere({ demon }) {
 
   return (
     <group position={[x, 0, z]}>
+      <mesh ref={ringRef}>
+        <torusGeometry args={[1.4, 0.04, 16, 48]} />
+        <meshBasicMaterial
+          color={isFuture ? '#555555' : diffColor}
+          transparent
+          opacity={isFuture ? 0.15 : (hovered || isSelected ? 0.5 : 0.25)}
+          depthWrite={false}
+        />
+      </mesh>
       <group ref={floatRef}>
         <Html position={[0, 0, 0]} center zIndexRange={[0, 0]}>
           <div

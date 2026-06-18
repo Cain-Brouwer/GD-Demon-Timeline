@@ -474,6 +474,100 @@ function Ton618BlackHole() {
         <sphereGeometry args={[25, 24, 24]} />
         <meshBasicMaterial map={glowTexture} transparent depthWrite={false} />
       </mesh>
+      <mesh rotation={[tilt - 0.3, 0, 0]} position={[0, 12, 0]}>
+        <coneGeometry args={[2, 20, 12]} />
+        <meshBasicMaterial color="#ffdd99" transparent opacity={0.06} depthWrite={false} />
+      </mesh>
+      <mesh rotation={[Math.PI - (tilt - 0.3), 0, 0]} position={[0, -12, 0]}>
+        <coneGeometry args={[2, 20, 12]} />
+        <meshBasicMaterial color="#ffdd99" transparent opacity={0.04} depthWrite={false} />
+      </mesh>
+    </group>
+  )
+}
+
+function ShootingStars() {
+  const count = 6
+  const meshes = useRef([])
+  const state = useRef(
+    Array.from({ length: count }, () => ({
+      active: false,
+      timer: Math.random() * 20,
+      x: 0, y: 0, z: 0,
+      dx: 0, dy: 0, dz: 0,
+      life: 0,
+    }))
+  )
+
+  const starTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 64
+    canvas.height = 64
+    const ctx = canvas.getContext('2d')
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+    g.addColorStop(0, 'rgba(255,255,255,1)')
+    g.addColorStop(0.1, 'rgba(255,255,220,0.8)')
+    g.addColorStop(0.3, 'rgba(255,220,180,0.3)')
+    g.addColorStop(0.6, 'rgba(200,180,255,0.08)')
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 64, 64)
+    return new THREE.CanvasTexture(canvas)
+  }, [])
+
+  useFrame(({ clock }) => {
+    for (let i = 0; i < count; i++) {
+      const s = state.current[i]
+      const mesh = meshes.current[i]
+      if (!mesh) continue
+
+      if (!s.active) {
+        s.timer -= 0.016
+        mesh.visible = false
+        if (s.timer <= 0) {
+          s.active = true
+          s.life = 0
+          const angle = Math.random() * Math.PI * 2
+          s.x = (Math.random() - 0.5) * 400
+          s.y = 100 + Math.random() * 120
+          s.z = (Math.random() - 0.5) * 300 - 80
+          const speed = 80 + Math.random() * 60
+          s.dx = -Math.cos(angle) * speed
+          s.dy = -(10 + Math.random() * 20)
+          s.dz = -Math.sin(angle) * speed * 0.6
+        }
+      } else {
+        s.life += 0.016
+        s.x += s.dx * 0.016
+        s.y += s.dy * 0.016
+        s.z += s.dz * 0.016
+        mesh.position.set(s.x, s.y, s.z)
+        const fade = Math.max(0, 1 - s.life / 1.2)
+        mesh.material.opacity = fade * fade * 0.9
+        const scale = 1 + fade * 3
+        mesh.scale.set(scale, scale, 1)
+        mesh.visible = fade > 0.01
+        if (s.life > 1.2) {
+          s.active = false
+          s.timer = 2 + Math.random() * 15
+          mesh.visible = false
+        }
+      }
+    }
+  })
+
+  return (
+    <group>
+      {Array.from({ length: count }, (_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { meshes.current[i] = el }}
+          visible={false}
+        >
+          <planeGeometry args={[4, 4]} />
+          <spriteMaterial map={starTexture} transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
+        </mesh>
+      ))}
     </group>
   )
 }
@@ -534,6 +628,7 @@ function SceneContent() {
       <Nebula />
       <Starfield />
       <FloatingParticles />
+      <ShootingStars />
       <Ton618BlackHole />
       <CameraAnimator />
 
