@@ -60,22 +60,6 @@ function DemonSphere({ demon }) {
   return (
     <group position={[x, 0, z]}>
       <group ref={floatRef}>
-        {!isFuture && (hovered || isSelected) && (
-          <div
-            style={{
-              position: 'absolute',
-              left: -45,
-              top: -45,
-              width: 90,
-              height: 90,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, ${diffColor}55 0%, ${diffColor}11 60%, transparent 80%)`,
-              pointerEvents: 'none',
-              transform: 'translateZ(-1px)',
-              zIndex: -1,
-            }}
-          />
-        )}
         <Html position={[0, 0, 0]} center zIndexRange={[0, 0]}>
           <div
             onClick={handleClick}
