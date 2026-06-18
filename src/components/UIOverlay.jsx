@@ -86,6 +86,8 @@ function UIOverlay({ config }) {
   const removeDemon = useTimelineStore((s) => s.removeDemon)
   const replaceAllDemons = useTimelineStore((s) => s.replaceAllDemons)
   const triggerViewAll = useTimelineStore((s) => s.triggerViewAll)
+  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
+  const setBloomEnabled = useTimelineStore((s) => s.setBloomEnabled)
   const searchRef = useRef(null)
   const [flash, setFlash] = useState(false)
 
@@ -800,6 +802,18 @@ function UIOverlay({ config }) {
             }}
           >
             screenshot
+          </span>
+          <span
+            onClick={() => setBloomEnabled(!bloomEnabled)}
+            style={{
+              marginLeft: isMobile ? 8 : 12,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: bloomEnabled ? 'rgba(255,255,255,0.4)' : '#fbbf24',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            bloom {bloomEnabled ? 'on' : 'off'}
           </span>
           <span
             onClick={() => setShowDocs(true)}

@@ -711,13 +711,16 @@ function FloatingParticles() {
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
+  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const textures = useTexture(ICON_MAP)
 
   return (
     <>
-      <EffectComposer>
-        <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
-      </EffectComposer>
+      {bloomEnabled && (
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
+        </EffectComposer>
+      )}
 
       <fog attach="fog" args={['#0a0015', 80, 800]} />
       <ambientLight intensity={0.5} />

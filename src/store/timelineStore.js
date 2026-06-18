@@ -36,6 +36,8 @@ export const useTimelineStore = create(
       youtubeSoundOnly: false,
       setYoutubeVideo: (id, soundOnly = false) => set({ youtubeVideoId: id, youtubeSoundOnly: soundOnly }),
       clearYoutubeVideo: () => set({ youtubeVideoId: null, youtubeSoundOnly: false }),
+      bloomEnabled: true,
+      setBloomEnabled: (v) => set({ bloomEnabled: v }),
 
       user: null,
       cloudStatus: 'idle',
