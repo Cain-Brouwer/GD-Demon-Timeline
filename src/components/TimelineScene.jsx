@@ -507,7 +507,7 @@ function Gargantua() {
     }
   })
 
-  return <primitive ref={ref} object={scene} position={[60, -10, -80]} scale={[1.5, 1.5, 1.5]} />
+  return <primitive ref={ref} object={scene} position={[60, -10, -50]} scale={[6, 6, 6]} />
 }
 
 function ShootingStars() {
