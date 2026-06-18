@@ -33,7 +33,8 @@ function UIOverlay({ config }) {
   const [showStats, setShowStats] = useState(false)
   const [showImportExport, setShowImportExport] = useState(false)
   const [showMobileList, setShowMobileList] = useState(false)
-  const [showLeftDetail, setShowLeftDetail] = useState(false)
+  const isMobile = useMedia('(max-width: 768px)')
+  const [showLeftDetail, setShowLeftDetail] = useState(!isMobile)
   const [confirmRemove, setConfirmRemove] = useState(null)
   const [removeInput, setRemoveInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,7 +52,6 @@ function UIOverlay({ config }) {
   const removeDemon = useTimelineStore((s) => s.removeDemon)
   const replaceAllDemons = useTimelineStore((s) => s.replaceAllDemons)
   const triggerViewAll = useTimelineStore((s) => s.triggerViewAll)
-  const isMobile = useMedia('(max-width: 768px)')
   const searchRef = useRef(null)
   const [flash, setFlash] = useState(false)
 
@@ -152,21 +152,23 @@ function UIOverlay({ config }) {
           onClick={() => setShowMobileList((v) => !v)}
           style={{
             position: 'fixed',
-            top: 10,
+            bottom: showMobileList ? 'auto' : 60,
+            top: showMobileList ? 10 : 'auto',
             right: 10,
-            zIndex: 10000,
-            background: showMobileList ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.7)',
+            zIndex: 10010,
+            background: showMobileList ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.8)',
             border: '1px solid rgba(255,255,255,0.15)',
             borderRadius: 8,
             color: 'white',
             fontSize: 18,
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
             fontFamily: 'monospace',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
           }}
         >
           {showMobileList ? '✕' : '☰'}
@@ -293,19 +295,19 @@ function UIOverlay({ config }) {
         }}
       >
         <h1
-          onClick={() => isMobile && setShowLeftDetail((v) => !v)}
+          onClick={() => setShowLeftDetail((v) => !v)}
           style={{
             fontSize: isMobile ? 13 : 18,
             margin: '0 0 4px',
             color: '#c084fc',
-            cursor: isMobile ? 'pointer' : 'default',
+            cursor: 'pointer',
             userSelect: 'none',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
           }}
         >
-          {isMobile ? (showLeftDetail ? `${config.title} ▼` : `${config.title} ▶`) : config.title}
+          {config.title} {showLeftDetail ? '▼' : '▶'}
           <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
         </h1>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
@@ -318,7 +320,7 @@ function UIOverlay({ config }) {
             <span style={{ color: '#888' }}>{demons.filter((d) => d.progress === 0).length} future</span>
           </p>
         </div>
-        {!isMobile && (
+        {showLeftDetail && (
           <>
             <div style={{ marginTop: 4, fontSize: 11, opacity: 0.5, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {Object.entries(DIFFICULTY_COLORS).map(([diff]) => {
@@ -370,7 +372,7 @@ function UIOverlay({ config }) {
           display: isMobile && !showMobileList ? 'none' : 'block',
           position: isMobile ? 'fixed' : 'absolute',
           top: isMobile ? 'auto' : 20,
-          bottom: isMobile ? 50 : 'auto',
+          bottom: isMobile ? 55 : 'auto',
           right: isMobile ? 10 : 20,
           left: isMobile ? 10 : 'auto',
           background: 'rgba(0,0,0,0.75)',
@@ -398,9 +400,9 @@ function UIOverlay({ config }) {
                     background: 'rgba(255,255,255,0.08)',
                     border: '1px solid rgba(255,255,255,0.12)',
                     color: cloudStatus === 'saved' ? '#4ade80' : 'rgba(255,255,255,0.6)',
-                    padding: '2px 6px',
+                    padding: isMobile ? '4px 8px' : '2px 6px',
                     borderRadius: 4,
-                    fontSize: 9,
+                    fontSize: isMobile ? 11 : 9,
                     fontFamily: 'monospace',
                     cursor: 'pointer',
                   }}
@@ -414,9 +416,9 @@ function UIOverlay({ config }) {
                     background: 'rgba(255,255,255,0.08)',
                     border: '1px solid rgba(255,255,255,0.12)',
                     color: 'rgba(255,255,255,0.6)',
-                    padding: '2px 6px',
+                    padding: isMobile ? '4px 8px' : '2px 6px',
                     borderRadius: 4,
-                    fontSize: 9,
+                    fontSize: isMobile ? 11 : 9,
                     fontFamily: 'monospace',
                     cursor: 'pointer',
                   }}
@@ -432,9 +434,9 @@ function UIOverlay({ config }) {
                   background: 'rgba(192,132,252,0.15)',
                   border: '1px solid rgba(192,132,252,0.3)',
                   color: '#c084fc',
-                  padding: '2px 6px',
+                  padding: isMobile ? '4px 8px' : '2px 6px',
                   borderRadius: 4,
-                  fontSize: 9,
+                  fontSize: isMobile ? 11 : 9,
                   fontFamily: 'monospace',
                   cursor: 'pointer',
                 }}
@@ -448,9 +450,9 @@ function UIOverlay({ config }) {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
                 color: 'rgba(255,255,255,0.6)',
-                padding: '2px 6px',
+                padding: isMobile ? '4px 8px' : '2px 6px',
                 borderRadius: 4,
-                fontSize: 9,
+                fontSize: isMobile ? 11 : 9,
                 fontFamily: 'monospace',
                 cursor: 'pointer',
               }}
@@ -463,9 +465,9 @@ function UIOverlay({ config }) {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
                 color: 'rgba(255,255,255,0.6)',
-                padding: '2px 6px',
+                padding: isMobile ? '4px 8px' : '2px 6px',
                 borderRadius: 4,
-                fontSize: 9,
+                fontSize: isMobile ? 11 : 9,
                 fontFamily: 'monospace',
                 cursor: 'pointer',
               }}
@@ -479,9 +481,9 @@ function UIOverlay({ config }) {
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
                 color: 'rgba(255,255,255,0.6)',
-                padding: '2px 6px',
+                padding: isMobile ? '4px 8px' : '2px 6px',
                 borderRadius: 4,
-                fontSize: 9,
+                fontSize: isMobile ? 11 : 9,
                 fontFamily: 'monospace',
                 cursor: 'pointer',
               }}
@@ -514,9 +516,9 @@ function UIOverlay({ config }) {
             background: 'rgba(255,255,255,0.06)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 4,
-            padding: '4px 8px',
+            padding: isMobile ? '8px 8px' : '4px 8px',
             color: 'white',
-            fontSize: isMobile ? 10 : 11,
+            fontSize: isMobile ? 13 : 11,
             fontFamily: 'monospace',
             outline: 'none',
             marginBottom: 4,
@@ -530,9 +532,9 @@ function UIOverlay({ config }) {
               key={diff}
               onClick={() => setFilterDifficulty(diff)}
               style={{
-                fontSize: isMobile ? 8 : 9,
+                fontSize: isMobile ? 11 : 9,
                 fontFamily: 'monospace',
-                padding: '2px 5px',
+                padding: isMobile ? '4px 8px' : '2px 5px',
                 borderRadius: 3,
                 cursor: 'pointer',
                 background: filterDifficulty === diff ? (diff === 'all' ? 'rgba(255,255,255,0.15)' : (DIFFICULTY_COLORS[diff] || 'rgba(255,255,255,0.15)')) : 'rgba(255,255,255,0.05)',
@@ -551,9 +553,9 @@ function UIOverlay({ config }) {
               key={st}
               onClick={() => setFilterStatus(st)}
               style={{
-                fontSize: isMobile ? 8 : 9,
+                fontSize: isMobile ? 11 : 9,
                 fontFamily: 'monospace',
-                padding: '2px 5px',
+                padding: isMobile ? '4px 8px' : '2px 5px',
                 borderRadius: 3,
                 cursor: 'pointer',
                 background: filterStatus === st ? 'rgba(192,132,252,0.3)' : 'rgba(255,255,255,0.05)',
@@ -573,9 +575,9 @@ function UIOverlay({ config }) {
               else if (sortBy === 'date') { setSortBy('id'); setSortDir('desc') }
             }}
             style={{
-              fontSize: isMobile ? 8 : 9,
+              fontSize: isMobile ? 11 : 9,
               fontFamily: 'monospace',
-              padding: '2px 5px',
+              padding: isMobile ? '4px 8px' : '2px 5px',
               borderRadius: 3,
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.4)',
@@ -602,8 +604,8 @@ function UIOverlay({ config }) {
               alignItems: 'center',
               gap: 4,
               marginBottom: 3,
-              fontSize: isMobile ? 10 : 12,
-              padding: '2px 3px',
+              fontSize: isMobile ? 12 : 12,
+              padding: isMobile ? '6px 3px' : '2px 3px',
               borderRadius: 4,
             }}
           >
@@ -635,9 +637,9 @@ function UIOverlay({ config }) {
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.2)',
                 color: 'white',
-                padding: isMobile ? '1px 5px' : '2px 8px',
+                padding: isMobile ? '4px 8px' : '2px 8px',
                 borderRadius: 4,
-                fontSize: isMobile ? 8 : 10,
+                fontSize: isMobile ? 11 : 10,
                 fontFamily: 'monospace',
                 cursor: 'pointer',
                 flexShrink: 0,
@@ -651,9 +653,9 @@ function UIOverlay({ config }) {
                 background: 'none',
                 border: 'none',
                 color: '#ff4444',
-                fontSize: isMobile ? 10 : 12,
+                fontSize: isMobile ? 14 : 12,
                 cursor: 'pointer',
-                padding: '1px 3px',
+                padding: isMobile ? '4px 6px' : '1px 3px',
                 lineHeight: '12px',
                 opacity: 0.7,
               }}
@@ -671,9 +673,9 @@ function UIOverlay({ config }) {
             background: 'rgba(192,132,252,0.15)',
             border: '1px dashed rgba(192,132,252,0.3)',
             color: '#c084fc',
-            padding: isMobile ? '4px 0' : '6px 0',
+            padding: isMobile ? '10px 0' : '6px 0',
             borderRadius: 6,
-            fontSize: isMobile ? 10 : 12,
+            fontSize: isMobile ? 13 : 12,
             fontFamily: 'monospace',
             cursor: 'pointer',
           }}
@@ -684,7 +686,7 @@ function UIOverlay({ config }) {
 
       <div
         style={{
-          position: 'absolute',
+          position: isMobile ? 'fixed' : 'absolute',
           bottom: isMobile ? 8 : 20,
           left: '50%',
           transform: 'translateX(-50%)',
@@ -699,29 +701,31 @@ function UIOverlay({ config }) {
           whiteSpace: 'nowrap',
         }}
       >
-        {isMobile ? 'Drag · Scroll · Hover' : 'Drag to rotate · Scroll to zoom · Hover for details'}
-        <span
-          onClick={takeScreenshot}
-          style={{
-            marginLeft: isMobile ? 8 : 12,
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            color: 'rgba(255,255,255,0.4)',
-          }}
-        >
-          screenshot
-        </span>
-        <span
-          onClick={() => setShowDocs(true)}
-          style={{
-            marginLeft: isMobile ? 8 : 12,
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            color: 'rgba(255,255,255,0.4)',
-          }}
-        >
-          docs
-        </span>
+          {isMobile ? 'Drag · Scroll · Hover' : 'Drag to rotate · Scroll to zoom · Hover for details'}
+          <span
+            onClick={takeScreenshot}
+            style={{
+              marginLeft: isMobile ? 8 : 12,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.4)',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            screenshot
+          </span>
+          <span
+            onClick={() => setShowDocs(true)}
+            style={{
+              marginLeft: isMobile ? 8 : 12,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.4)',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            docs
+          </span>
       </div>
     </>,
     document.body
