@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, useGLTF, useAnimations } from '@react-three/drei'
+import { OrbitControls, Html, useGLTF } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
@@ -504,14 +504,9 @@ function Ton618BlackHole() {
   )
 }
 
-function Gargantua() {
+function BlackHole() {
   const groupRef = useRef()
-  const { scene, animations } = useGLTF('/models/gargantua.glb')
-  const { actions } = useAnimations(animations, groupRef)
-
-  useEffect(() => {
-    Object.values(actions).forEach((action) => action.play())
-  }, [actions])
+  const { scene } = useGLTF('/models/black_hole.glb')
 
   useEffect(() => {
     if (scene) {
@@ -731,7 +726,7 @@ function SceneContent() {
       <Starfield />
       <FloatingParticles />
       <ShootingStars />
-      <Gargantua />
+      <BlackHole />
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
