@@ -226,7 +226,7 @@ function CameraAnimator() {
       animRef.current.onDone()
       animRef.current = null
     }
-  })
+  }, undefined, [viewAllTrigger, demons, goToPosition, clearGoToPosition])
 
   return null
 }
@@ -384,7 +384,7 @@ function Nebula({ bounds }) {
       sprite.position.z = d.baseZ
       sprite.material.rotation = t * d.rotSpeed + d.rot
     }
-  })
+  }, undefined, [nebulaCount])
 
   return <group ref={groupRef} />
 }
@@ -709,7 +709,7 @@ function WASDControls() {
     camera.position.add(move)
     controls.target.add(move)
     controls.update()
-  })
+  }, undefined, [controls])
 
   return null
 }
@@ -752,7 +752,7 @@ function FloatingParticles({ bounds }) {
       pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.002
     }
     ref.current.geometry.attributes.position.needsUpdate = true
-  })
+  }, undefined, [speeds, particleCount])
 
   return (
     <points ref={ref}>
@@ -777,7 +777,7 @@ function CameraMetrics() {
         z: Math.round(camera.position.z),
       })
     }
-  })
+  }, undefined, [setCameraPos])
   return null
 }
 
@@ -828,7 +828,7 @@ function RenderGuard() {
     if (!bloomEnabled) {
       gl.autoClear = true
     }
-  })
+  }, undefined, [bloomEnabled])
   
   return null
 }
