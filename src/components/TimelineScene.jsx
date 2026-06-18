@@ -511,7 +511,7 @@ const TON_618_DATA = {
   name: "TON 618",
   creator: "Team Space",
   creatorRealName: "Spanyel, Platnuu & more",
-  difficulty: "Impossible / Extreme Demon (Nerfed)",
+  difficulty: "Impossible Level",
   stars: 10,
   duration: "1:07",
   description: "A legendary cosmic-apocalyptic project named after one of the largest known supermassive black holes.",
