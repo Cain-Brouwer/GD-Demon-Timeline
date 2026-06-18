@@ -519,7 +519,7 @@ function BlackHole() {
   }, [scene])
 
   return (
-    <group ref={groupRef} position={[80, -40, -300]} scale={[30, 30, 30]}>
+    <group ref={groupRef} position={[80, -40, -300]} scale={[0.15, 0.15, 0.15]}>
       <primitive object={scene} />
     </group>
   )
