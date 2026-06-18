@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, useGLTF } from '@react-three/drei'
+import { OrbitControls, Html, useGLTF, useAnimations } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
@@ -488,8 +488,13 @@ function Ton618BlackHole() {
 }
 
 function Gargantua() {
-  const { scene } = useGLTF('/models/gargantua.glb')
-  const ref = useRef()
+  const groupRef = useRef()
+  const { scene, animations } = useGLTF('/models/gargantua.glb')
+  const { actions } = useAnimations(animations, groupRef)
+
+  useEffect(() => {
+    Object.values(actions).forEach((action) => action.play())
+  }, [actions])
 
   useEffect(() => {
     if (scene) {
@@ -501,13 +506,11 @@ function Gargantua() {
     }
   }, [scene])
 
-  useFrame(() => {
-    if (ref.current) {
-      ref.current.rotation.y += 0.0006
-    }
-  })
-
-  return <primitive ref={ref} object={scene} position={[60, -10, -50]} scale={[6, 6, 6]} />
+  return (
+    <group ref={groupRef} position={[60, -10, -50]} scale={[6, 6, 6]}>
+      <primitive object={scene} />
+    </group>
+  )
 }
 
 function ShootingStars() {
