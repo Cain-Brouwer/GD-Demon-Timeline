@@ -1,6 +1,5 @@
 import { useRef, useState, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 
@@ -41,6 +40,27 @@ const glowCircle = (() => {
   return new THREE.CanvasTexture(canvas)
 })()
 
+function createNameTexture(name, isFuture) {
+  const ctx = document.createElement('canvas').getContext('2d')
+  ctx.font = 'bold 24px monospace'
+  const metrics = ctx.measureText(name)
+  const padX = 16
+  const w = Math.ceil(metrics.width + padX * 2)
+  const h = 40
+  ctx.canvas.width = w
+  ctx.canvas.height = h
+  ctx.font = 'bold 24px monospace'
+  ctx.textBaseline = 'middle'
+  ctx.shadowColor = 'rgba(0,0,0,0.95)'
+  ctx.shadowBlur = 8
+  ctx.shadowOffsetY = 2
+  ctx.fillStyle = isFuture ? 'rgba(255,255,255,0.4)' : 'white'
+  ctx.fillText(name, padX, h / 2)
+  const tex = new THREE.CanvasTexture(ctx.canvas)
+  tex.needsUpdate = true
+  return tex
+}
+
 function DemonSphere({ demon, textures }) {
   const spriteRef = useRef()
   const glowRef = useRef()
@@ -59,18 +79,20 @@ function DemonSphere({ demon, textures }) {
   const vec3 = useRef(new THREE.Vector3())
   const iconTexture = textures[demon.difficulty]
 
+  const nameTexture = useMemo(() => createNameTexture(demon.name, isFuture), [demon.name, isFuture])
+  const nameAspect = nameTexture.image.width / nameTexture.image.height
+
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
     vec3.current.set(x, 0, z)
     const dist = camera.position.distanceTo(vec3.current)
 
+    const floatY = Math.sin(t * 0.8 + x) * 0.3
     if (spriteRef.current) {
-      spriteRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
-      spriteRef.current.visible = dist < 80
+      spriteRef.current.position.y = floatY
     }
     if (glowRef.current) {
-      glowRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
-      glowRef.current.visible = dist < 80
+      glowRef.current.position.y = floatY
     }
     if (spriteRef.current) {
       scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
@@ -78,7 +100,8 @@ function DemonSphere({ demon, textures }) {
       glowRef.current.scale.setScalar(scaleRef.current * 1.25)
     }
     if (nameRef.current) {
-      nameRef.current.visible = dist < 40
+      nameRef.current.position.y = floatY + 2.8
+      nameRef.current.visible = dist < 50
     }
     if (ringRef.current) {
       ringRef.current.rotation.z += 0.008
@@ -139,23 +162,13 @@ function DemonSphere({ demon, textures }) {
         />
       </sprite>
 
-      <Html ref={nameRef} position={[0, 0, 0]} center style={{ pointerEvents: 'none' }}>
-        <span
-          style={{
-            color: isFuture ? 'rgba(255,255,255,0.4)' : 'white',
-            fontSize: hovered || isSelected ? 13 : 12,
-            fontFamily: 'monospace',
-            textShadow: '0 0 8px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.9)',
-            whiteSpace: 'nowrap',
-            transform: 'translateY(-30px)',
-            display: 'inline-block',
-            transition: 'font-size 0.2s ease',
-            opacity: hovered || isSelected ? 1 : 0.8,
-          }}
-        >
-          {demon.name}
-        </span>
-      </Html>
+      <sprite ref={nameRef} scale={[nameAspect * 1.5, 1.5, 1]}>
+        <spriteMaterial
+          map={nameTexture}
+          transparent
+          depthWrite={false}
+        />
+      </sprite>
     </group>
   )
 }
