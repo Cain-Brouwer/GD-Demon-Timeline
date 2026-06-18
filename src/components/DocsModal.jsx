@@ -9,12 +9,20 @@ const sections = [
     ],
   },
   {
+    title: 'Keyboard Shortcuts',
+    items: [
+      '←/↑ or →/↓ — Select previous/next demon.',
+      'Esc — Close tooltip, modal, or YouTube player.',
+      'Ctrl+F — Focus the search box.',
+    ],
+  },
+  {
     title: 'Demon Spheres',
     items: [
       'Each demon is a sphere with its difficulty icon.',
-      'Hover to highlight and see the name label.',
+      'Spheres smoothly scale up on hover or when selected.',
       'Click a sphere to open the tooltip with full details.',
-      'Future demons (not yet beaten) appear greyed out with a dashed glow.',
+      'Future demons appear greyed out with a dashed border.',
     ],
   },
   {
@@ -22,60 +30,84 @@ const sections = [
     items: [
       'Shows name, creator, difficulty, and date beaten.',
       'Click "+ extra info" to see music credits and description.',
-      'Use "▶ Watch Showcase" to open the YouTube video in a fullscreen modal.',
-      'Use "♫ Sound Only" to play only the audio in the mini-player bar.',
+      'Use "▶ Watch Showcase" to open the YouTube video.',
+      'Use "♫ Sound Only" to play only the audio.',
     ],
   },
   {
     title: 'Watch Showcase',
     items: [
-      'Opens the YouTube showcase video in a fullscreen overlay.',
-      'Toggle between "Video" and "Sound Only" mode within the modal.',
-      'Click outside the video or press Escape to close.',
+      'Opens the YouTube video in a fullscreen overlay.',
+      'Toggle between "Video" and "Sound Only" mode.',
+      'Click outside or press Escape to close.',
     ],
   },
   {
     title: 'Sound Only / Mini Player',
     items: [
-      'Plays the YouTube audio in a compact bar at the bottom of the screen.',
-      'The 3D scene remains fully interactive while audio plays.',
-      'Use the play/pause button, seek bar, and volume slider to control playback.',
-      'Volume fades in smoothly when a new track starts.',
-      'Click ✕ to close the mini-player.',
+      'Plays YouTube audio in a compact bar at the bottom.',
+      'The 3D scene remains fully interactive.',
+      'Play/pause, seek bar, and volume slider controls.',
+      'Volume fades in smoothly on new tracks.',
     ],
   },
   {
-    title: 'Demon List (Right Panel)',
+    title: 'Demon List & Search',
     items: [
-      'Lists all demons sorted by ID.',
+      'The right panel lists all demons with difficulty dots.',
+      'Use the search box (or Ctrl+F) to find demons by name, creator, or description.',
+      'Filter by difficulty (Easy/Medium/Hard/Insane/Extreme) or status (beaten/future).',
+      'Click the sort label to cycle through sort orders (ID, name, difficulty, date).',
       'Click "go to" to fly the camera to that demon.',
-      'Click "view all" to zoom out and see every demon at once.',
-      'Click ✕ to remove a demon (you must type its name to confirm).',
+      'Click "view all" to zoom out and see every demon.',
     ],
   },
   {
-    title: 'Add Custom Demon',
+    title: 'Add / Edit / Remove',
     items: [
-      'Click "+ Add Custom Demon" at the bottom of the demon list.',
-      'Fill in the name (required), creator, difficulty, and optional details.',
-      'Set the position (ID) to insert at a specific spot in the timeline.',
-      'Leave the position empty to append at the end.',
-      'Choose "Future" or "Beaten" status — beaten gets today\'s date.',
+      'Click "+ Add Custom Demon" to add a new demon.',
+      'Use the "✎ Edit" button in any tooltip to edit a demon.',
+      'Click ✕ to remove a demon (type the name to confirm).',
+      'Set position ID to insert at a specific spot.',
     ],
   },
   {
-    title: 'Remove Demon',
+    title: 'Statistics',
     items: [
-      'Click the ✕ button next to any demon in the list.',
-      'A confirmation dialog appears — type the demon\'s name exactly to confirm.',
-      'The check is not case-sensitive.',
+      'Click "stats" in the demon list header to open the dashboard.',
+      'Shows total, beaten, future counts and completion percentage.',
+      'Per-difficulty progress bars with color coding.',
+      'Daily streak tracker and recent beaten list.',
+    ],
+  },
+  {
+    title: 'Import / Export',
+    items: [
+      'Click "⇄" to open the import/export dialog.',
+      'Export your timeline as a downloadable JSON file.',
+      'Import a JSON file to replace your current timeline.',
+    ],
+  },
+  {
+    title: 'Screenshot',
+    items: [
+      'Click "screenshot" in the bottom bar to capture the current 3D view.',
+      'Downloads a PNG image of the timeline.',
+    ],
+  },
+  {
+    title: 'Cloud Sync',
+    items: [
+      'Sign in with an email and password to sync your timeline to the cloud.',
+      'Use the "save" / "load" buttons to manually sync.',
+      'Auto-syncs when you sign in.',
     ],
   },
   {
     title: 'Data Persistence',
     items: [
-      'All demons and custom additions are saved in your browser (localStorage).',
-      'Refreshing the page restores your timeline exactly as you left it.',
+      'All demons are saved in your browser (localStorage).',
+      'Refreshing restores your timeline exactly as it was.',
       'To reset, clear your browser data for this site.',
     ],
   },

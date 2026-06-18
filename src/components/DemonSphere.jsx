@@ -27,6 +27,7 @@ const ICON_MAP = {
 
 function DemonSphere({ demon }) {
   const floatRef = useRef()
+  const scaleRef = useRef(1)
   const [hovered, setHovered] = useState(false)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const selectDemon = useTimelineStore((s) => s.selectDemon)
@@ -35,12 +36,17 @@ function DemonSphere({ demon }) {
   const isSelected = selectedDemon?.id === demon.id
   const iconSrc = ICON_MAP[demon.difficulty] || easyIcon
   const isFuture = demon.progress === 0
-  const size = hovered || isSelected ? 80 : 60
+  const targetScale = hovered || isSelected ? 1.35 : 1
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
     if (floatRef.current) {
       floatRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
+    }
+    const grp = floatRef.current
+    if (grp) {
+      scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
+      grp.scale.setScalar(scaleRef.current)
     }
   })
 
@@ -49,22 +55,41 @@ function DemonSphere({ demon }) {
     selectDemon(demon)
   }
 
+  const glowSize = hovered || isSelected ? 90 : isFuture ? 0 : 70
+
   return (
     <group position={[x, 0, z]}>
       <group ref={floatRef}>
+        {!isFuture && (hovered || isSelected) && (
+          <div
+            style={{
+              position: 'absolute',
+              left: -45,
+              top: -45,
+              width: 90,
+              height: 90,
+              borderRadius: '50%',
+              background: `radial-gradient(circle, ${diffColor}55 0%, ${diffColor}11 60%, transparent 80%)`,
+              pointerEvents: 'none',
+              transform: 'translateZ(-1px)',
+              zIndex: -1,
+            }}
+          />
+        )}
         <Html position={[0, 0, 0]} center zIndexRange={[0, 0]}>
           <div
             onClick={handleClick}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
-              width: size,
-              height: size,
+              width: glowSize,
+              height: glowSize,
               cursor: 'pointer',
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'width 0.25s ease, height 0.25s ease',
             }}
           >
             <div
@@ -77,20 +102,25 @@ function DemonSphere({ demon }) {
                   ? `radial-gradient(circle, rgba(100,100,100,0.3) 0%, rgba(100,100,100,0.15) 50%, transparent 70%)`
                   : `radial-gradient(circle, ${diffColor}44 0%, ${diffColor}22 50%, transparent 70%)`,
                 border: isFuture ? '1px dashed rgba(255,255,255,0.15)' : 'none',
+                boxShadow: isFuture
+                  ? 'none'
+                  : (hovered || isSelected ? `0 0 20px ${diffColor}66` : `0 0 6px ${diffColor}22`),
                 pointerEvents: 'none',
+                transition: 'box-shadow 0.3s ease',
               }}
             />
             <img
               src={iconSrc}
               alt={demon.name}
               style={{
-                width: '100%',
-                height: '100%',
+                width: '80%',
+                height: '80%',
                 objectFit: 'contain',
                 display: 'block',
                 imageRendering: 'auto',
                 opacity: isFuture ? 0.4 : 1,
                 filter: isFuture ? 'grayscale(0.6)' : 'none',
+                transition: 'opacity 0.2s ease',
               }}
             />
             {isFuture && (
@@ -125,12 +155,14 @@ function DemonSphere({ demon }) {
           <span
             style={{
               color: isFuture ? 'rgba(255,255,255,0.4)' : 'white',
-              fontSize: 12,
+              fontSize: hovered || isSelected ? 13 : 12,
               fontFamily: 'monospace',
               textShadow: '0 0 8px rgba(0,0,0,0.9), 0 0 4px rgba(0,0,0,0.9)',
               whiteSpace: 'nowrap',
-              transform: 'translateY(-30px)',
+              transform: 'translateY(-38px)',
               display: 'inline-block',
+              transition: 'font-size 0.2s ease',
+              opacity: hovered || isSelected ? 1 : 0.8,
             }}
           >
             {demon.name}

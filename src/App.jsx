@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import TimelineScene from './components/TimelineScene'
 import UIOverlay from './components/UIOverlay'
 import YouTubeModal from './components/YouTubeModal'
@@ -17,8 +17,54 @@ function App() {
   const user = useTimelineStore((s) => s.user)
   const cloudLoad = useTimelineStore((s) => s.cloudLoad)
   const cloudSave = useTimelineStore((s) => s.cloudSave)
+  const demons = useTimelineStore((s) => s.demons)
+  const selectedDemon = useTimelineStore((s) => s.selectedDemon)
+  const selectDemon = useTimelineStore((s) => s.selectDemon)
+  const clearSelection = useTimelineStore((s) => s.clearSelection)
+  const clearYoutubeVideo = useTimelineStore((s) => s.clearYoutubeVideo)
   const youtubeVideoId = useTimelineStore((s) => s.youtubeVideoId)
   const syncedRef = useRef(false)
+
+  const handleKeyDown = useCallback((e) => {
+    const tag = document.activeElement?.tagName || ''
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+    if (e.key === 'Escape') {
+      if (youtubeVideoId) clearYoutubeVideo()
+      else clearSelection()
+      return
+    }
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault()
+      const sorted = [...demons].sort((a, b) => a.id - b.id)
+      if (sorted.length === 0) return
+      if (!selectedDemon) { selectDemon(sorted[0]); return }
+      const idx = sorted.findIndex((d) => d.id === selectedDemon.id)
+      selectDemon(sorted[(idx + 1) % sorted.length])
+      return
+    }
+
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const sorted = [...demons].sort((a, b) => a.id - b.id)
+      if (sorted.length === 0) return
+      if (!selectedDemon) { selectDemon(sorted[sorted.length - 1]); return }
+      const idx = sorted.findIndex((d) => d.id === selectedDemon.id)
+      selectDemon(sorted[(idx - 1 + sorted.length) % sorted.length])
+      return
+    }
+
+    if (e.key === 'f' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      window.dispatchEvent(new CustomEvent('focus-search'))
+    }
+  }, [demons, selectedDemon, selectDemon, clearSelection, clearYoutubeVideo, youtubeVideoId])
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
 
   useEffect(() => {
     if (APP_KEY) initDemons(demonData.demons)

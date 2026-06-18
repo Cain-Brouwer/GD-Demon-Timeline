@@ -88,6 +88,10 @@ export const useTimelineStore = create(
         set({ demons: assignPositions(updated) })
       },
 
+      replaceAllDemons: (data) => {
+        set({ demons: assignPositions(data), initialised: true })
+      },
+
       cloudSave: async () => {
         const state = get()
         if (!state.user || !supabase) return

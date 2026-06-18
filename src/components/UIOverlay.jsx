@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTimelineStore } from '../store/timelineStore'
 import AddDemonModal from './AddDemonModal'
 import DocsModal from './DocsModal'
 import AuthModal from './AuthModal'
+import StatsModal from './StatsModal'
+import ImportExportModal from './ImportExportModal'
 
 const DIFFICULTY_COLORS = {
   'Easy Demon': '#00ff00',
@@ -28,10 +30,17 @@ function UIOverlay({ config }) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
+  const [showStats, setShowStats] = useState(false)
+  const [showImportExport, setShowImportExport] = useState(false)
   const [showMobileList, setShowMobileList] = useState(false)
   const [showLeftDetail, setShowLeftDetail] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(null)
   const [removeInput, setRemoveInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterDifficulty, setFilterDifficulty] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [sortBy, setSortBy] = useState('id')
+  const [sortDir, setSortDir] = useState('asc')
   const demons = useTimelineStore((s) => s.demons)
   const user = useTimelineStore((s) => s.user)
   const cloudStatus = useTimelineStore((s) => s.cloudStatus)
@@ -40,14 +49,91 @@ function UIOverlay({ config }) {
   const signOut = useTimelineStore((s) => s.signOut)
   const setGoToPosition = useTimelineStore((s) => s.setGoToPosition)
   const removeDemon = useTimelineStore((s) => s.removeDemon)
+  const replaceAllDemons = useTimelineStore((s) => s.replaceAllDemons)
   const triggerViewAll = useTimelineStore((s) => s.triggerViewAll)
   const isMobile = useMedia('(max-width: 768px)')
+  const searchRef = useRef(null)
+  const [flash, setFlash] = useState(false)
+
+  const takeScreenshot = () => {
+    const canvas = document.querySelector('canvas')
+    if (!canvas) return
+    const link = document.createElement('a')
+    link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    setFlash(true)
+    setTimeout(() => setFlash(false), 600)
+  }
+
+  useEffect(() => {
+    const handler = () => searchRef.current?.focus()
+    window.addEventListener('focus-search', handler)
+    return () => window.removeEventListener('focus-search', handler)
+  }, [])
+
+  const filteredDemons = useMemo(() => {
+    let list = [...demons]
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      list = list.filter((d) =>
+        d.name.toLowerCase().includes(q) ||
+        (d.creator || '').toLowerCase().includes(q) ||
+        (d.description || '').toLowerCase().includes(q)
+      )
+    }
+
+    if (filterDifficulty !== 'all') {
+      list = list.filter((d) => d.difficulty === filterDifficulty)
+    }
+
+    if (filterStatus === 'beaten') {
+      list = list.filter((d) => d.progress === 100)
+    } else if (filterStatus === 'future') {
+      list = list.filter((d) => d.progress === 0)
+    }
+
+    list.sort((a, b) => {
+      const order = ['Easy Demon', 'Medium Demon', 'Hard Demon', 'Insane Demon', 'Extreme Demon']
+      let cmp
+      if (sortBy === 'name') cmp = a.name.localeCompare(b.name)
+      else if (sortBy === 'difficulty') cmp = order.indexOf(a.difficulty) - order.indexOf(b.difficulty)
+      else if (sortBy === 'date') cmp = a.dateBeaten.localeCompare(b.dateBeaten)
+      else cmp = a.id - b.id
+      return sortDir === 'desc' ? -cmp : cmp
+    })
+
+    return list
+  }, [demons, searchQuery, filterDifficulty, filterStatus, sortBy, sortDir])
 
   return createPortal(
     <>
+      {flash && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'white',
+            zIndex: 99999,
+            opacity: 0.15,
+            pointerEvents: 'none',
+            animation: 'flashOut 0.6s ease-out',
+          }}
+        />
+      )}
+      <style>{`@keyframes flashOut { from { opacity: 0.3 } to { opacity: 0 } }`}</style>
       {showAddModal && <AddDemonModal onClose={() => setShowAddModal(false)} />}
       {showDocs && <DocsModal onClose={() => setShowDocs(false)} />}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showStats && <StatsModal demons={demons} onClose={() => setShowStats(false)} />}
+      {showImportExport && (
+        <ImportExportModal
+          demons={demons}
+          onImport={(data) => replaceAllDemons(data)}
+          onClose={() => setShowImportExport(false)}
+        />
+      )}
 
       {isMobile && (
         <button
@@ -359,8 +445,41 @@ function UIOverlay({ config }) {
             >
               view all
             </button>
+            <button
+              onClick={() => setShowStats(true)}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.6)',
+                padding: '2px 6px',
+                borderRadius: 4,
+                fontSize: 9,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+              }}
+              title="Statistics"
+            >
+              stats
+            </button>
+            <button
+              onClick={() => setShowImportExport(true)}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.6)',
+                padding: '2px 6px',
+                borderRadius: 4,
+                fontSize: 9,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+              }}
+              title="Import / Export"
+            >
+              ⇄
+            </button>
           </div>
         </div>
+
         {user && (
           <div style={{ fontSize: isMobile ? 9 : 10, color: 'rgba(255,255,255,0.4)', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>{user.email}</span>
@@ -372,7 +491,98 @@ function UIOverlay({ config }) {
             </span>
           </div>
         )}
-        {demons.map((demon) => (
+
+        <input
+          ref={searchRef}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search demons... (Ctrl+F)"
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 4,
+            padding: '4px 8px',
+            color: 'white',
+            fontSize: isMobile ? 10 : 11,
+            fontFamily: 'monospace',
+            outline: 'none',
+            marginBottom: 4,
+            boxSizing: 'border-box',
+          }}
+        />
+
+        <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginBottom: 4 }}>
+          {['all', 'Easy Demon', 'Medium Demon', 'Hard Demon', 'Insane Demon', 'Extreme Demon'].map((diff) => (
+            <span
+              key={diff}
+              onClick={() => setFilterDifficulty(diff)}
+              style={{
+                fontSize: isMobile ? 8 : 9,
+                fontFamily: 'monospace',
+                padding: '2px 5px',
+                borderRadius: 3,
+                cursor: 'pointer',
+                background: filterDifficulty === diff ? (diff === 'all' ? 'rgba(255,255,255,0.15)' : (DIFFICULTY_COLORS[diff] || 'rgba(255,255,255,0.15)')) : 'rgba(255,255,255,0.05)',
+                color: filterDifficulty === diff ? (diff === 'all' ? 'white' : '#0a0015') : 'rgba(255,255,255,0.5)',
+                fontWeight: filterDifficulty === diff ? 'bold' : 'normal',
+              }}
+            >
+              {diff === 'all' ? 'all' : diff.split(' ')[0]}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: 3, alignItems: 'center', marginBottom: 4 }}>
+          {['all', 'beaten', 'future'].map((st) => (
+            <span
+              key={st}
+              onClick={() => setFilterStatus(st)}
+              style={{
+                fontSize: isMobile ? 8 : 9,
+                fontFamily: 'monospace',
+                padding: '2px 5px',
+                borderRadius: 3,
+                cursor: 'pointer',
+                background: filterStatus === st ? 'rgba(192,132,252,0.3)' : 'rgba(255,255,255,0.05)',
+                color: filterStatus === st ? '#c084fc' : 'rgba(255,255,255,0.5)',
+                fontWeight: filterStatus === st ? 'bold' : 'normal',
+              }}
+            >
+              {st}
+            </span>
+          ))}
+          <span style={{ flex: 1 }} />
+          <span
+            onClick={() => {
+              if (sortBy === 'id') { setSortBy('name'); setSortDir('asc') }
+              else if (sortBy === 'name') { setSortBy('difficulty'); setSortDir('asc') }
+              else if (sortBy === 'difficulty') { setSortBy('date'); setSortDir('asc') }
+              else if (sortBy === 'date') { setSortBy('id'); setSortDir('desc') }
+            }}
+            style={{
+              fontSize: isMobile ? 8 : 9,
+              fontFamily: 'monospace',
+              padding: '2px 5px',
+              borderRadius: 3,
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.4)',
+            }}
+            title="Change sort"
+          >
+            sort: {sortBy}{sortDir === 'desc' ? ' ↓' : ' ↑'}
+          </span>
+        </div>
+
+        {filteredDemons.length === 0 && (
+          <div style={{ fontSize: isMobile ? 10 : 11, opacity: 0.4, textAlign: 'center', padding: '12px 0' }}>
+            {searchQuery || filterDifficulty !== 'all' || filterStatus !== 'all'
+              ? 'No demons match your filters.'
+              : 'No demons yet. Add one!'}
+          </div>
+        )}
+
+        {filteredDemons.map((demon) => (
           <div
             key={demon.id}
             style={{
@@ -393,6 +603,7 @@ function UIOverlay({ config }) {
                 background: DIFFICULTY_COLORS[demon.difficulty],
                 display: 'inline-block',
                 flexShrink: 0,
+                boxShadow: demon.progress === 0 ? 'none' : `0 0 4px ${DIFFICULTY_COLORS[demon.difficulty]}`,
               }}
             />
             <span
@@ -477,6 +688,17 @@ function UIOverlay({ config }) {
         }}
       >
         {isMobile ? 'Drag · Scroll · Hover' : 'Drag to rotate · Scroll to zoom · Hover for details'}
+        <span
+          onClick={takeScreenshot}
+          style={{
+            marginLeft: isMobile ? 8 : 12,
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            color: 'rgba(255,255,255,0.4)',
+          }}
+        >
+          screenshot
+        </span>
         <span
           onClick={() => setShowDocs(true)}
           style={{
