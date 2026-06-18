@@ -26,6 +26,40 @@ function useMedia(query) {
   return matches
 }
 
+function FpsCounter() {
+  const [fps, setFps] = useState(60)
+  const count = useRef(0)
+  const last = useRef(performance.now())
+  const samples = useRef([])
+
+  useEffect(() => {
+    let raf
+    const tick = () => {
+      count.current++
+      const now = performance.now()
+      if (now - last.current >= 1000) {
+        const arr = samples.current
+        arr.push(count.current)
+        if (arr.length > 10) arr.shift()
+        setFps(Math.round(arr.reduce((a, b) => a + b, 0) / arr.length))
+        count.current = 0
+        last.current = now
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  const color = fps >= 55 ? '#4ade80' : fps >= 30 ? '#fbbf24' : '#ef4444'
+
+  return (
+    <span style={{ fontFamily: 'monospace', fontSize: 11, color, opacity: 0.5, marginLeft: 'auto' }}>
+      {fps} FPS
+    </span>
+  )
+}
+
 function UIOverlay({ config }) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
@@ -309,6 +343,7 @@ function UIOverlay({ config }) {
         >
           {config.title} {showLeftDetail ? '▼' : '▶'}
           <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
+          <FpsCounter />
         </h1>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <p style={{ margin: 0, fontSize: isMobile ? 11 : 14, opacity: 0.8 }}>
