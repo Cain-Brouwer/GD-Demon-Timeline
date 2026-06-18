@@ -81,12 +81,14 @@ function DemonSphere({ demon, textures }) {
 
   const nameTexture = useMemo(() => createNameTexture(demon.name, isFuture), [demon.name, isFuture])
   const nameAspect = nameTexture.image.width / nameTexture.image.height
+  const nameBaseScale = useMemo(() => new THREE.Vector3(nameAspect * 1.5, 1.5, 1), [nameAspect])
 
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
     vec3.current.set(x, 0, z)
     const dist = camera.position.distanceTo(vec3.current)
 
+    const screenScale = Math.max(0.3, dist / 50)
     const floatY = Math.sin(t * 0.8 + x) * 0.3
     if (spriteRef.current) {
       spriteRef.current.position.y = floatY
@@ -96,11 +98,13 @@ function DemonSphere({ demon, textures }) {
     }
     if (spriteRef.current) {
       scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
-      spriteRef.current.scale.setScalar(scaleRef.current)
-      glowRef.current.scale.setScalar(scaleRef.current * 1.25)
+      const s = scaleRef.current * screenScale
+      spriteRef.current.scale.setScalar(s)
+      glowRef.current.scale.setScalar(s * 1.25)
     }
     if (nameRef.current) {
-      nameRef.current.position.y = floatY + 2.8
+      nameRef.current.position.y = floatY + 2.8 * screenScale
+      nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
       nameRef.current.visible = dist < 50
     }
     if (ringRef.current) {
