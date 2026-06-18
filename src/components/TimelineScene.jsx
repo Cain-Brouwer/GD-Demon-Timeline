@@ -306,7 +306,7 @@ function Nebula({ bounds }) {
   }, [])
 
   const { geometry, material } = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(1, 1)
+    const geo = new THREE.SphereGeometry(1, 8, 6)
     const mat = new THREE.MeshBasicMaterial({
       map: cloudTexture,
       transparent: true,
@@ -344,7 +344,7 @@ function Nebula({ bounds }) {
       }
       position.set(x, y, z)
       quaternion.identity()
-      scale.set(s, s, 1)
+      scale.set(s, s, s * 0.4)
       matrix.compose(position, quaternion, scale)
       mesh.setMatrixAt(i, matrix)
       color.setRGB(c[0] * bright, c[1] * bright, c[2] * bright)
@@ -367,7 +367,7 @@ function Nebula({ bounds }) {
         d.baseZ,
       )
       _nebQuat.setFromAxisAngle(_nebAxis, t * d.rotSpeed)
-      _nebScale.set(d.size, d.size, 1)
+      _nebScale.set(d.size, d.size, d.size * 0.4)
       _nebMatrix.compose(_nebPos, _nebQuat, _nebScale)
       mesh.setMatrixAt(i, _nebMatrix)
     }
