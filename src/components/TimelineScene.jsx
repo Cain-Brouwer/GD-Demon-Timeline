@@ -287,51 +287,81 @@ function Starfield() {
 }
 
 function Nebula() {
-  const texture = useMemo(() => {
+  const cloudTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 1024
-    canvas.height = 512
+    canvas.width = 256
+    canvas.height = 256
     const ctx = canvas.getContext('2d')
-
-    const gradient = ctx.createRadialGradient(512, 256, 0, 512, 256, 512)
-    gradient.addColorStop(0, 'rgba(120, 50, 200, 0.15)')
-    gradient.addColorStop(0.2, 'rgba(80, 30, 160, 0.1)')
-    gradient.addColorStop(0.4, 'rgba(200, 50, 150, 0.06)')
-    gradient.addColorStop(0.6, 'rgba(50, 30, 120, 0.04)')
-    gradient.addColorStop(1, 'rgba(10, 0, 21, 0)')
-
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, 1024, 512)
-
-    for (let i = 0; i < 40; i++) {
-      const x = Math.random() * 1024
-      const y = Math.random() * 512
-      const r = 60 + Math.random() * 200
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r)
-      g.addColorStop(0, `rgba(${80 + Math.random() * 80}, ${30 + Math.random() * 50}, ${120 + Math.random() * 80}, 0.04)`)
-      g.addColorStop(1, 'rgba(10, 0, 21, 0)')
-      ctx.fillStyle = g
-      ctx.fillRect(x - r, y - r, r * 2, r * 2)
-    }
-
-    const tex = new THREE.CanvasTexture(canvas)
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-    return tex
+    const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+    g.addColorStop(0, 'rgba(255,255,255,0.15)')
+    g.addColorStop(0.3, 'rgba(255,255,255,0.06)')
+    g.addColorStop(0.6, 'rgba(255,255,255,0.02)')
+    g.addColorStop(1, 'rgba(255,255,255,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 256, 256)
+    return new THREE.CanvasTexture(canvas)
   }, [])
 
-  const ref = useRef()
+  const patches = useMemo(() => {
+    const result = []
+    const colors = [
+      [0.4, 0.15, 0.7], [0.7, 0.2, 0.5], [0.2, 0.1, 0.6],
+      [0.5, 0.1, 0.3], [0.3, 0.2, 0.7], [0.6, 0.25, 0.4],
+      [0.15, 0.05, 0.5], [0.8, 0.3, 0.6], [0.25, 0.15, 0.65],
+    ]
+    for (let i = 0; i < 45; i++) {
+      const c = colors[Math.floor(Math.random() * colors.length)]
+      result.push({
+        position: [
+          (Math.random() - 0.5) * 500,
+          (Math.random() - 0.5) * 200 + 10,
+          (Math.random() - 0.5) * 400 - 50,
+        ],
+        size: 30 + Math.random() * 100,
+        opacity: 0.02 + Math.random() * 0.06,
+        color: c,
+        rotSpeed: 0.0002 + Math.random() * 0.0006,
+        driftX: (Math.random() - 0.5) * 0.02,
+        driftY: (Math.random() - 0.5) * 0.01,
+      })
+    }
+    return result
+  }, [])
+
+  const refs = useRef([])
+  refs.current = refs.current.slice(0, patches.length)
+
   useFrame(() => {
-    if (ref.current) {
-      ref.current.rotation.y += 0.0003
-      ref.current.rotation.x = Math.sin(Date.now() * 0.00005) * 0.02
+    for (let i = 0; i < patches.length; i++) {
+      const mesh = refs.current[i]
+      if (!mesh) continue
+      const p = patches[i]
+      mesh.rotation.z += p.rotSpeed
+      mesh.position.x += Math.sin(Date.now() * 0.0003 + i) * 0.003
+      mesh.position.y += Math.sin(Date.now() * 0.0004 + i * 1.3) * 0.002
     }
   })
 
   return (
-    <mesh ref={ref} position={[0, -20, -120]}>
-      <planeGeometry args={[300, 200]} />
-      <meshBasicMaterial map={texture} transparent depthWrite={false} side={THREE.DoubleSide} />
-    </mesh>
+    <group>
+      {patches.map((p, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { refs.current[i] = el }}
+          position={p.position}
+        >
+          <planeGeometry args={[p.size, p.size]} />
+          <meshBasicMaterial
+            map={cloudTexture}
+            transparent
+            depthWrite={false}
+            opacity={p.opacity}
+            color={p.color}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      ))}
+    </group>
   )
 }
 
