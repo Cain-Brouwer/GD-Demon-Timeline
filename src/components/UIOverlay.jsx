@@ -701,7 +701,7 @@ function UIOverlay({ config }) {
             TON 618
           </span>
           <button
-            onClick={() => setGoToPosition([60, -10, -50])}
+            onClick={() => setGoToPosition([80, 50, -200])}
             style={{
               background: 'rgba(255,255,255,0.1)',
               border: '1px solid rgba(255,255,255,0.2)',

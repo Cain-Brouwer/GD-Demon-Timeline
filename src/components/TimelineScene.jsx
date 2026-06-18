@@ -507,7 +507,7 @@ function Gargantua() {
   }, [scene])
 
   return (
-    <group ref={groupRef} position={[60, -10, -50]} scale={[6, 6, 6]}>
+    <group ref={groupRef} position={[80, -40, -300]} scale={[30, 30, 30]}>
       <primitive object={scene} />
     </group>
   )
@@ -601,7 +601,7 @@ function ShootingStars() {
 
 function WASDControls() {
   const { camera, controls } = useThree()
-  const keys = useRef({ w: false, a: false, s: false, d: false })
+  const keys = useRef({ w: false, a: false, s: false, d: false, shift: false })
 
   useEffect(() => {
     const down = (e) => {
@@ -610,6 +610,7 @@ function WASDControls() {
         case 'KeyA': keys.current.a = true; break
         case 'KeyS': keys.current.s = true; break
         case 'KeyD': keys.current.d = true; break
+        case 'ShiftLeft': case 'ShiftRight': keys.current.shift = true; break
       }
     }
     const up = (e) => {
@@ -618,6 +619,7 @@ function WASDControls() {
         case 'KeyA': keys.current.a = false; break
         case 'KeyS': keys.current.s = false; break
         case 'KeyD': keys.current.d = false; break
+        case 'ShiftLeft': case 'ShiftRight': keys.current.shift = false; break
       }
     }
     window.addEventListener('keydown', down)
@@ -630,7 +632,7 @@ function WASDControls() {
 
   useFrame((_, delta) => {
     if (!controls) return
-    const speed = 20 * delta
+    const speed = (keys.current.shift ? 60 : 20) * delta
     const forward = new THREE.Vector3()
     camera.getWorldDirection(forward)
     forward.y = 0
