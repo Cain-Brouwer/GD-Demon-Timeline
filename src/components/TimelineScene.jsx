@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html } from '@react-three/drei'
+import { OrbitControls, Html, useGLTF } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
@@ -486,6 +487,29 @@ function Ton618BlackHole() {
   )
 }
 
+function Gargantua() {
+  const { scene } = useGLTF('/models/gargantua.glb')
+  const ref = useRef()
+
+  useEffect(() => {
+    if (scene) {
+      scene.traverse((child) => {
+        if (child.isMesh) {
+          child.frustumCulled = false
+        }
+      })
+    }
+  }, [scene])
+
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.0006
+    }
+  })
+
+  return <primitive ref={ref} object={scene} position={[60, -10, -80]} scale={[1.5, 1.5, 1.5]} />
+}
+
 function ShootingStars() {
   const count = 6
   const meshes = useRef([])
@@ -629,7 +653,7 @@ function SceneContent() {
       <Starfield />
       <FloatingParticles />
       <ShootingStars />
-      <Ton618BlackHole />
+      <Gargantua />
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
