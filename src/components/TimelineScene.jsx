@@ -770,7 +770,7 @@ function SceneContent() {
       <Starfield bounds={timelineBounds} />
       <FloatingParticles bounds={timelineBounds} />
       <ShootingStars bounds={timelineBounds} />
-      <BlackHole />
+      {/* <BlackHole /> */}
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
