@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
@@ -33,17 +33,23 @@ function DemonSphere({ demon }) {
   const [hovered, setHovered] = useState(false)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const selectDemon = useTimelineStore((s) => s.selectDemon)
+  const { camera } = useThree()
   const diffColor = DIFFICULTY_COLORS[demon.difficulty] || '#ffffff'
   const [x, , z] = demon.position
   const isSelected = selectedDemon?.id === demon.id
   const iconSrc = ICON_MAP[demon.difficulty] || easyIcon
   const isFuture = demon.progress === 0
   const targetScale = hovered || isSelected ? 1.35 : 1
+  const vec3 = useRef(new THREE.Vector3())
 
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
+    vec3.current.set(x, 0, z)
+    const dist = camera.position.distanceTo(vec3.current)
+
     if (floatRef.current) {
       floatRef.current.position.y = Math.sin(t * 0.8 + x) * 0.3
+      floatRef.current.visible = dist < 60
     }
     const grp = floatRef.current
     if (grp) {
@@ -55,6 +61,7 @@ function DemonSphere({ demon }) {
       ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
       const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
       ringRef.current.scale.setScalar(s)
+      ringRef.current.visible = dist < 120
     }
   })
 
@@ -68,7 +75,7 @@ function DemonSphere({ demon }) {
   return (
     <group position={[x, 0, z]}>
       <mesh ref={ringRef}>
-        <torusGeometry args={[1.4, 0.04, 16, 48]} />
+        <torusGeometry args={[1.4, 0.04, 8, 16]} />
         <meshBasicMaterial
           color={isFuture ? '#555555' : diffColor}
           transparent
