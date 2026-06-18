@@ -237,14 +237,13 @@ function Starfield({ bounds }) {
     const count = 1500
     const margin = 100
     const xRange = bounds.width / 2 + margin
-    const zRange = xRange * 0.6
     const pos = new Float32Array(count * 3)
     const col = new Float32Array(count * 3)
     const siz = new Float32Array(count)
     for (let i = 0; i < count; i++) {
       pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * xRange * 2
       pos[i * 3 + 1] = (Math.random() - 0.5) * 400
-      pos[i * 3 + 2] = bounds.centerX + (Math.random() - 0.5) * zRange * 2
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 500
 
       const tint = Math.random()
       if (tint < 0.6) {
