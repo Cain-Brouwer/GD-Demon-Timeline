@@ -63,6 +63,10 @@ function UIOverlay({ config }) {
         backgroundColor: '#0a0015',
         useCORS: true,
         scale: 1,
+        onclone: (doc) => {
+          doc.body.querySelectorAll('[style*="z-index: 9999"], [style*="z-index: 10000"], [style*="z-index: 10001"], [style*="z-index: 10002"]')
+            .forEach((el) => el.remove())
+        },
       }).then((canvas) => {
         const link = document.createElement('a')
         link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
