@@ -49,7 +49,7 @@ export const useTimelineStore = create(
         set({ demons, initialised: true })
       },
 
-      addDemon: ({ insertId, beaten, ...rest }) => {
+      addDemon: ({ insertId, beaten, dateBeaten, ...rest }) => {
         const state = get()
         let updated = [...state.demons]
 
@@ -63,7 +63,7 @@ export const useTimelineStore = create(
           id,
           ...rest,
           progress: beaten ? 100 : 0,
-          dateBeaten: beaten ? todayStr() : 'N/A',
+          dateBeaten: dateBeaten || (beaten ? todayStr() : 'N/A'),
         }
 
         updated.push(newDemon)

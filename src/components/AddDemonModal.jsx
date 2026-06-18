@@ -17,6 +17,7 @@ function AddDemonModal({ onClose }) {
   const [musicArtist, setMusicArtist] = useState('')
   const [showcaseUrl, setShowcaseUrl] = useState('')
   const [description, setDescription] = useState('')
+  const [dateBeaten, setDateBeaten] = useState('')
 
   const maxId = demons.length > 0 ? Math.max(...demons.map((d) => d.id)) : 0
   const suggestedId = maxId + 1
@@ -29,6 +30,7 @@ function AddDemonModal({ onClose }) {
     addDemon({
       insertId: parsedId,
       beaten,
+      dateBeaten: beaten ? (dateBeaten || new Date().toISOString().split('T')[0]) : undefined,
       name: name.trim(),
       creator: creator.trim() || 'Unknown',
       difficulty,
@@ -112,7 +114,7 @@ function AddDemonModal({ onClose }) {
             />
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
               <span
-                onClick={() => setBeaten(false)}
+                onClick={() => { setBeaten(false); setDateBeaten('') }}
                 style={{
                   fontSize: 11,
                   fontFamily: 'monospace',
@@ -127,7 +129,7 @@ function AddDemonModal({ onClose }) {
                 Future
               </span>
               <span
-                onClick={() => setBeaten(true)}
+                onClick={() => { setBeaten(true); if (!dateBeaten) setDateBeaten(new Date().toISOString().split('T')[0]) }}
                 style={{
                   fontSize: 11,
                   fontFamily: 'monospace',
@@ -141,6 +143,14 @@ function AddDemonModal({ onClose }) {
               >
                 Beaten
               </span>
+              {beaten && (
+                <input
+                  type="date"
+                  value={dateBeaten}
+                  onChange={(e) => setDateBeaten(e.target.value)}
+                  style={{ ...inputStyle, flex: 1, fontSize: 11 }}
+                />
+              )}
             </div>
           </div>
           <div style={{ fontSize: 10, opacity: 0.35, marginTop: -6 }}>
