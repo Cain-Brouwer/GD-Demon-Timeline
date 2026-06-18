@@ -2,6 +2,8 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
+const _tlPoint = new THREE.Vector3()
+
 function createVaryingTube(curve, segments, radialSegments, radiusFn) {
   const vertices = []
   const indices = []
@@ -89,10 +91,10 @@ function TimelineLines({ demons }) {
     const pos = partRef.current.geometry.attributes.position.array
     for (let i = 0; i < pCount; i++) {
       const t = ((i / pCount) + time) % 1
-      const pt = curve.getPoint(t)
-      pos[i * 3] = pt.x
-      pos[i * 3 + 1] = pt.y
-      pos[i * 3 + 2] = pt.z
+      curve.getPoint(t, _tlPoint)
+      pos[i * 3] = _tlPoint.x
+      pos[i * 3 + 1] = _tlPoint.y
+      pos[i * 3 + 2] = _tlPoint.z
     }
     partRef.current.geometry.attributes.position.needsUpdate = true
   })

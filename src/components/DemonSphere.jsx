@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useTexture, Html } from '@react-three/drei'
+import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 
@@ -18,7 +18,7 @@ const DIFFICULTY_COLORS = {
   'Extreme Demon': '#ff00ff',
 }
 
-const ICON_MAP = {
+export const ICON_MAP = {
   'Easy Demon': easyIcon,
   'Medium Demon': mediumIcon,
   'Hard Demon': hardIcon,
@@ -41,7 +41,7 @@ const glowCircle = (() => {
   return new THREE.CanvasTexture(canvas)
 })()
 
-function DemonSphere({ demon }) {
+function DemonSphere({ demon, textures }) {
   const spriteRef = useRef()
   const glowRef = useRef()
   const nameRef = useRef()
@@ -57,9 +57,7 @@ function DemonSphere({ demon }) {
   const isFuture = demon.progress === 0
   const targetScale = hovered || isSelected ? 2.7 : 2
   const vec3 = useRef(new THREE.Vector3())
-
-  const allTextures = useTexture(ICON_MAP)
-  const iconTexture = allTextures[demon.difficulty]
+  const iconTexture = textures[demon.difficulty]
 
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()

@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, useGLTF } from '@react-three/drei'
+import { OrbitControls, Html, useGLTF, useTexture } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 import EditDemonModal from './EditDemonModal'
-import DemonSphere from './DemonSphere'
+import DemonSphere, { ICON_MAP } from './DemonSphere'
 import TimelineLines from './TimelineLines'
 
 function getYouTubeId(url) {
@@ -287,6 +287,12 @@ function Starfield() {
   )
 }
 
+const _nebMatrix = new THREE.Matrix4()
+const _nebPos = new THREE.Vector3()
+const _nebQuat = new THREE.Quaternion()
+const _nebScale = new THREE.Vector3()
+const _nebAxis = new THREE.Vector3(0, 0, 1)
+
 function Nebula() {
   const count = 45
   const meshRef = useRef()
@@ -359,23 +365,19 @@ function Nebula() {
   useFrame(() => {
     if (!meshRef.current) return
     const mesh = meshRef.current
-    const matrix = new THREE.Matrix4()
-    const position = new THREE.Vector3()
-    const quaternion = new THREE.Quaternion()
-    const scale = new THREE.Vector3()
     const t = Date.now()
 
     for (let i = 0; i < count; i++) {
       const d = data.current[i]
-      position.set(
+      _nebPos.set(
         d.baseX + Math.sin(t * 0.0003 + i) * 10,
         d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5,
         d.baseZ,
       )
-      quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), t * d.rotSpeed)
-      scale.set(d.size, d.size, 1)
-      matrix.compose(position, quaternion, scale)
-      mesh.setMatrixAt(i, matrix)
+      _nebQuat.setFromAxisAngle(_nebAxis, t * d.rotSpeed)
+      _nebScale.set(d.size, d.size, 1)
+      _nebMatrix.compose(_nebPos, _nebQuat, _nebScale)
+      mesh.setMatrixAt(i, _nebMatrix)
     }
     mesh.instanceMatrix.needsUpdate = true
   })
@@ -614,6 +616,10 @@ function ShootingStars() {
 function WASDControls() {
   const { camera, controls } = useThree()
   const keys = useRef({ w: false, a: false, s: false, d: false, shift: false })
+  const _forward = useRef(new THREE.Vector3())
+  const _right = useRef(new THREE.Vector3())
+  const _up = useRef(new THREE.Vector3(0, 1, 0))
+  const _move = useRef(new THREE.Vector3())
 
   useEffect(() => {
     const down = (e) => {
@@ -644,22 +650,21 @@ function WASDControls() {
 
   useFrame((_, delta) => {
     if (!controls) return
+    if (!keys.current.w && !keys.current.a && !keys.current.s && !keys.current.d) return
     const speed = (keys.current.shift ? 60 : 20) * delta
-    const forward = new THREE.Vector3()
+    const forward = _forward.current
     camera.getWorldDirection(forward)
     forward.y = 0
     forward.normalize()
-    const right = new THREE.Vector3()
-    right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize()
-
-    const move = new THREE.Vector3()
+    const right = _right.current
+    right.crossVectors(forward, _up.current).normalize()
+    const move = _move.current.set(0, 0, 0)
     if (keys.current.w) move.add(forward)
     if (keys.current.s) move.sub(forward)
     if (keys.current.a) move.sub(right)
     if (keys.current.d) move.add(right)
     if (move.length() === 0) return
     move.normalize().multiplyScalar(speed)
-
     camera.position.add(move)
     controls.target.add(move)
     controls.update()
@@ -706,6 +711,7 @@ function FloatingParticles() {
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
+  const textures = useTexture(ICON_MAP)
 
   return (
     <>
@@ -731,7 +737,7 @@ function SceneContent() {
 
       <TimelineLines demons={demons} />
       {demons.map((demon) => (
-        <DemonSphere key={demon.id} demon={demon} />
+        <DemonSphere key={demon.id} demon={demon} textures={textures} />
       ))}
 
       {selectedDemon && <Tooltip demon={selectedDemon} />}
