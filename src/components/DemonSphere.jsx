@@ -2,6 +2,7 @@ import { useRef, useState, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
+import { perf } from '../lib/perfDebug'
 
 import easyIcon from '../assets/icons/Easy-Demon.png'
 import mediumIcon from '../assets/icons/Medium-Demon.png'
@@ -84,6 +85,7 @@ function DemonSphere({ demon, textures }) {
   const nameBaseScale = useMemo(() => new THREE.Vector3(nameAspect * 1.5, 1.5, 1), [nameAspect])
 
   useFrame((state, delta) => {
+    const end = perf.time('DemonSphere')
     const t = state.clock.getElapsedTime()
     vec3.current.set(x, 0, z)
     const dist = camera.position.distanceTo(vec3.current)
@@ -114,6 +116,7 @@ function DemonSphere({ demon, textures }) {
       ringRef.current.scale.setScalar(s)
       ringRef.current.visible = dist < 120
     }
+    end()
   })
 
   const handleClick = (e) => {

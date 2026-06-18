@@ -5,6 +5,7 @@ import { OrbitControls, Html, useGLTF, useTexture } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
+import { perf } from '../lib/perfDebug'
 import EditDemonModal from './EditDemonModal'
 import DemonSphere, { ICON_MAP } from './DemonSphere'
 import TimelineLines from './TimelineLines'
@@ -362,6 +363,7 @@ function Nebula({ bounds }) {
   }, [bounds, nebulaCount])
 
   useFrame(() => {
+    const end = perf.time('Nebula')
     const t = Date.now()
     for (let i = 0; i < nebulaCount; i++) {
       const d = data.current[i]
@@ -372,6 +374,7 @@ function Nebula({ bounds }) {
       sprite.position.z = d.baseZ
       sprite.material.rotation = t * d.rotSpeed + d.rot
     }
+    end()
   }, undefined, [nebulaCount])
 
   return <group ref={groupRef} />
@@ -585,6 +588,7 @@ function ShootingStars({ bounds }) {
   }, [])
 
   useFrame(({ clock }) => {
+    const end = perf.time('ShootingStars')
     for (let i = 0; i < count; i++) {
       const s = state.current[i]
       const mesh = meshes.current[i]
@@ -624,6 +628,7 @@ function ShootingStars({ bounds }) {
         }
       }
     }
+    end()
   })
 
   return (
@@ -728,13 +733,15 @@ function FloatingParticles({ bounds }) {
   }, [bounds, particleCount])
 
   useFrame((state) => {
-    if (!ref.current) return
+    const end = perf.time('FloatingParticles')
+    if (!ref.current) { end(); return }
     const t = state.clock.getElapsedTime()
     const pos = ref.current.geometry.attributes.position.array
     for (let i = 0; i < particleCount; i++) {
       pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.002
     }
     ref.current.geometry.attributes.position.needsUpdate = true
+    end()
   }, undefined, [speeds, particleCount])
 
   return (
@@ -813,6 +820,15 @@ function RenderGuard() {
   return null
 }
 
+function PerfMonitor() {
+  const { gl } = useThree()
+  useEffect(() => { perf.logWebGLInfo(gl) }, [gl])
+  useFrame((_, delta) => {
+    perf.detectStutter(delta * 1000)
+  })
+  return null
+}
+
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
@@ -833,6 +849,7 @@ function SceneContent() {
     <>
       <EffectComposerWrapper />
       <RenderGuard />
+      <PerfMonitor />
       
       <CameraMetrics />
       <fog attach="fog" args={['#0a0015', 80, 800]} />

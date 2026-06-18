@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTimelineStore } from '../store/timelineStore'
+import { perf } from '../lib/perfDebug'
 import AddDemonModal from './AddDemonModal'
 import DocsModal from './DocsModal'
 import AuthModal from './AuthModal'
@@ -785,6 +786,23 @@ function UIOverlay({ config }) {
           >
             docs
           </span>
+          {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug') && (
+            <span
+              onClick={() => {
+                const result = perf.copyDump()
+                alert(result)
+              }}
+              style={{
+                marginLeft: isMobile ? 8 : 12,
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                color: '#ff6b6b',
+                padding: isMobile ? '4px 2px' : 0,
+              }}
+            >
+              📋 debug
+            </span>
+          )}
       </div>
     </>,
     document.body
