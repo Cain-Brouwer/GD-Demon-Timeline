@@ -26,6 +26,7 @@ const DIFFICULTY_COLORS = {
   'Hard Demon': '#ff6600',
   'Insane Demon': '#ff0000',
   'Extreme Demon': '#ff00ff',
+  'Impossible Level': '#ffdd99',
 }
 
 function Tooltip({ demon }) {
@@ -140,24 +141,26 @@ function Tooltip({ demon }) {
             </button>
           </div>
         )}
-        <button
-          onClick={() => setShowEdit(true)}
-          style={{
-            width: '100%',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            color: 'white',
-            padding: '4px 10px',
-            borderRadius: 4,
-            fontSize: 11,
-            fontFamily: 'monospace',
-            cursor: 'pointer',
-            marginTop: videoId ? 4 : 0,
-            opacity: 0.6,
-          }}
-        >
-          ✎ Edit
-        </button>
+        {demon.name !== 'TON 618' && (
+          <button
+            onClick={() => setShowEdit(true)}
+            style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: 'white',
+              padding: '4px 10px',
+              borderRadius: 4,
+              fontSize: 11,
+              fontFamily: 'monospace',
+              cursor: 'pointer',
+              marginTop: videoId ? 4 : 0,
+              opacity: 0.6,
+            }}
+          >
+            ✎ Edit
+          </button>
+        )}
       </div>
       {showEdit && <EditDemonModal demon={demon} onClose={() => setShowEdit(false)} />}
     </Html>
@@ -512,14 +515,13 @@ const TON_618_DATA = {
   creator: "Team Space",
   creatorRealName: "Spanyel, Platnuu & more",
   difficulty: "Impossible Level",
-  stars: 10,
   duration: "1:07",
   description: "A legendary cosmic-apocalyptic project named after one of the largest known supermassive black holes.",
   theme: "Cosmic/Hell/Impossible",
   releaseDate: "2021-09-18",
   dateBeaten: "N/A",
-  musicTitle: "Thermodynamix",
-  musicArtist: "DJVI",
+  musicTitle: "Ton 618",
+  musicArtist: "Djjaner",
   levelID: 73783685,
   gameVersion: "2.11",
   series: "Illusion List / Impossible Levels",
