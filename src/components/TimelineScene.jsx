@@ -233,8 +233,24 @@ function CameraAnimator() {
 
 function Starfield({ bounds }) {
   const starsRef = useRef()
+  const { gl, size } = useThree()
+  
+  // Dynamically determine star count based on device
+  const starCount = useMemo(() => {
+    const renderer = gl.getParameter(gl.RENDERER) || ''
+    const pixelCount = size.width * size.height
+    
+    // Mobile or high-res desktop = fewer stars
+    const isMobileGPU = renderer.toLowerCase().includes('mali') || 
+                        renderer.toLowerCase().includes('adreno')
+    const isHighRes = pixelCount > 2073600 // > 1440p
+    
+    if (isMobileGPU || isHighRes) return 800
+    return 1500
+  }, [gl, size])
+  
   const { positions, colors, sizes } = useMemo(() => {
-    const count = 1500
+    const count = starCount
     const margin = 100
     const xRange = bounds.width / 2 + margin
     const pos = new Float32Array(count * 3)
@@ -259,7 +275,7 @@ function Starfield({ bounds }) {
       siz[i] = 0.15 + Math.random() * 0.5
     }
     return { positions: pos, colors: col, sizes: siz }
-  }, [bounds])
+  }, [bounds, starCount])
 
   useFrame(() => {
     if (starsRef.current) {
@@ -270,9 +286,9 @@ function Starfield({ bounds }) {
   return (
     <points ref={starsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={1500} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={1500} array={colors} itemSize={3} />
-        <bufferAttribute attach="attributes-size" count={1500} array={sizes} itemSize={1} />
+        <bufferAttribute attach="attributes-position" count={starCount} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={starCount} array={colors} itemSize={3} />
+        <bufferAttribute attach="attributes-size" count={starCount} array={sizes} itemSize={1} />
       </bufferGeometry>
       <pointsMaterial size={0.35} vertexColors transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
@@ -280,7 +296,23 @@ function Starfield({ bounds }) {
 }
 
 function Nebula({ bounds }) {
-  const count = 45
+  const { gl, size } = useThree()
+  
+  // Dynamically determine nebula count based on device
+  const nebulaCount = useMemo(() => {
+    const renderer = gl.getParameter(gl.RENDERER) || ''
+    const pixelCount = size.width * size.height
+    
+    // Mobile or high-res = fewer nebulas
+    const isMobileGPU = renderer.toLowerCase().includes('mali') || 
+                        renderer.toLowerCase().includes('adreno')
+    const isHighRes = pixelCount > 2073600 // > 1440p
+    
+    if (isMobileGPU) return 25
+    if (isHighRes) return 30
+    return 45
+  }, [gl, size])
+  
   const groupRef = useRef()
   const data = useRef([])
   const sprites = useRef([])
@@ -313,7 +345,7 @@ function Nebula({ bounds }) {
       [0.15, 0.05, 0.5], [0.8, 0.3, 0.6], [0.25, 0.15, 0.65],
     ]
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < nebulaCount; i++) {
       const c = colorList[Math.floor(Math.random() * colorList.length)]
       const bright = 0.3 + Math.random() * 0.7
       const s = 30 + Math.random() * 100
@@ -339,11 +371,11 @@ function Nebula({ bounds }) {
       group.add(sprite)
       sprites.current.push(sprite)
     }
-  }, [bounds])
+  }, [bounds, nebulaCount])
 
   useFrame(() => {
     const t = Date.now()
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < nebulaCount; i++) {
       const d = data.current[i]
       const sprite = sprites.current[i]
       if (!sprite) continue
@@ -683,25 +715,40 @@ function WASDControls() {
 }
 
 function FloatingParticles({ bounds }) {
+  const { gl, size } = useThree()
   const ref = useRef()
-  const count = 300
+  
+  // Dynamically determine particle count
+  const particleCount = useMemo(() => {
+    const renderer = gl.getParameter(gl.RENDERER) || ''
+    const pixelCount = size.width * size.height
+    
+    const isMobileGPU = renderer.toLowerCase().includes('mali') || 
+                        renderer.toLowerCase().includes('adreno')
+    const isHighRes = pixelCount > 2073600
+    
+    if (isMobileGPU) return 150
+    if (isHighRes) return 200
+    return 300
+  }, [gl, size])
+  
   const [positions, speeds] = useMemo(() => {
-    const pos = new Float32Array(count * 3)
-    const spd = new Float32Array(count)
-    for (let i = 0; i < count; i++) {
+    const pos = new Float32Array(particleCount * 3)
+    const spd = new Float32Array(particleCount)
+    for (let i = 0; i < particleCount; i++) {
       pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * bounds.width * 1.5
       pos[i * 3 + 1] = (Math.random() - 0.5) * 100
       pos[i * 3 + 2] = (Math.random() - 0.5) * bounds.width * 0.5
       spd[i] = 0.2 + Math.random() * 0.5
     }
     return [pos, spd]
-  }, [bounds])
+  }, [bounds, particleCount])
 
   useFrame((state) => {
     if (!ref.current) return
     const t = state.clock.getElapsedTime()
     const pos = ref.current.geometry.attributes.position.array
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < particleCount; i++) {
       pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.002
     }
     ref.current.geometry.attributes.position.needsUpdate = true
@@ -710,7 +757,7 @@ function FloatingParticles({ bounds }) {
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial size={0.15} color="#c084fc" transparent opacity={0.15} sizeAttenuation depthWrite={false} />
     </points>
@@ -734,9 +781,55 @@ function CameraMetrics() {
   return null
 }
 
-function ClearGuard() {
+function EffectComposerWrapper() {
+  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
+  const { gl, size } = useThree()
+  
+  // Optimize bloom based on device capabilities and resolution
+  const bloomConfig = useMemo(() => {
+    const pixelCount = size.width * size.height
+    const renderer = gl.getParameter(gl.RENDERER) || ''
+    
+    // On lower-end devices or high res, reduce blur passes
+    const isLowEndOrHighRes = pixelCount > 2073600 || // > 1440p
+                               renderer.toLowerCase().includes('mali') ||
+                               renderer.toLowerCase().includes('adreno')
+    
+    return {
+      luminanceThreshold: isLowEndOrHighRes ? 0.2 : 0.15,
+      luminanceSmoothing: 0.9,
+      intensity: 0.5,
+      mipmapBlur: !isLowEndOrHighRes, // Disable mipmap blur on high-res screens
+      blur: isLowEndOrHighRes ? 4 : 6, // Reduce blur passes on resource-constrained devices
+    }
+  }, [gl, size])
+  
+  if (!bloomEnabled) return null
+  
+  return (
+    <EffectComposer>
+      <Bloom 
+        luminanceThreshold={bloomConfig.luminanceThreshold}
+        luminanceSmoothing={bloomConfig.luminanceSmoothing}
+        intensity={bloomConfig.intensity}
+        mipmapBlur={bloomConfig.mipmapBlur}
+        blur={bloomConfig.blur}
+      />
+    </EffectComposer>
+  )
+}
+
+function RenderGuard() {
   const { gl } = useThree()
-  useFrame(() => { gl.autoClear = true }, -1)
+  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
+  
+  useFrame(() => {
+    // When bloom is disabled, ensure autoClear is true to prevent trails
+    if (!bloomEnabled) {
+      gl.autoClear = true
+    }
+  })
+  
   return null
 }
 
@@ -758,13 +851,9 @@ function SceneContent() {
 
   return (
     <>
-      <ClearGuard />
-      {bloomEnabled && (
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
-        </EffectComposer>
-      )}
-
+      <EffectComposerWrapper />
+      <RenderGuard />
+      
       <CameraMetrics />
       <fog attach="fog" args={['#0a0015', 80, 800]} />
       <ambientLight intensity={0.5} />
