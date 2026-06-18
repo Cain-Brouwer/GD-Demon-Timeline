@@ -44,9 +44,18 @@ export const useTimelineStore = create(
 
       initDemons: (data) => {
         const state = get()
-        if (state.demons.length > 0) return
-        const demons = assignPositions(data)
-        set({ demons, initialised: true })
+        if (state.demons.length === 0) {
+          const demons = assignPositions(data)
+          set({ demons, initialised: true })
+          return
+        }
+        const existingIds = new Set(state.demons.map((d) => d.id))
+        const newOnes = data.filter((d) => !existingIds.has(d.id))
+        if (newOnes.length > 0) {
+          set({ demons: assignPositions([...state.demons, ...newOnes]), initialised: true })
+        } else {
+          set({ initialised: true })
+        }
       },
 
       addDemon: ({ insertId, beaten, dateBeaten, ...rest }) => {
