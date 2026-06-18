@@ -57,7 +57,9 @@ function UIOverlay({ config }) {
 
   const takeScreenshot = () => {
     import('html2canvas').then(({ default: html2canvas }) => {
-      html2canvas(document.body, {
+      const el = document.querySelector('.app')
+      if (!el) return
+      html2canvas(el, {
         backgroundColor: '#0a0015',
         useCORS: true,
         scale: 1,
