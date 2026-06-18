@@ -767,6 +767,14 @@ function SceneContent() {
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const textures = useTexture(ICON_MAP)
+  const voidGroup = useRef()
+
+  useFrame(({ camera }) => {
+    if (voidGroup.current) {
+      voidGroup.current.position.x = camera.position.x
+      voidGroup.current.position.z = camera.position.z * 0.3
+    }
+  })
 
   return (
     <>
@@ -784,10 +792,12 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      <Nebula />
-      <Starfield />
-      <FloatingParticles />
-      <ShootingStars />
+      <group ref={voidGroup}>
+        <Nebula />
+        <Starfield />
+        <FloatingParticles />
+        <ShootingStars />
+      </group>
       <BlackHole />
       <CameraAnimator />
 
