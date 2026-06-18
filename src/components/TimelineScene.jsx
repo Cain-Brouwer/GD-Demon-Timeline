@@ -233,21 +233,15 @@ function CameraAnimator() {
 
 function Starfield({ bounds }) {
   const starsRef = useRef()
-  const { gl, size } = useThree()
   
   // Dynamically determine star count based on device
   const starCount = useMemo(() => {
-    const renderer = gl.getParameter(gl.RENDERER) || ''
-    const pixelCount = size.width * size.height
-    
-    // Mobile or high-res desktop = fewer stars
-    const isMobileGPU = renderer.toLowerCase().includes('mali') || 
-                        renderer.toLowerCase().includes('adreno')
+    const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
     const isHighRes = pixelCount > 2073600 // > 1440p
-    
-    if (isMobileGPU || isHighRes) return 800
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
+    if (isMobile || isHighRes) return 800
     return 1500
-  }, [gl, size])
+  }, [])
   
   const { positions, colors, sizes } = useMemo(() => {
     const count = starCount
@@ -296,22 +290,16 @@ function Starfield({ bounds }) {
 }
 
 function Nebula({ bounds }) {
-  const { gl, size } = useThree()
   
   // Dynamically determine nebula count based on device
   const nebulaCount = useMemo(() => {
-    const renderer = gl.getParameter(gl.RENDERER) || ''
-    const pixelCount = size.width * size.height
-    
-    // Mobile or high-res = fewer nebulas
-    const isMobileGPU = renderer.toLowerCase().includes('mali') || 
-                        renderer.toLowerCase().includes('adreno')
+    const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
     const isHighRes = pixelCount > 2073600 // > 1440p
-    
-    if (isMobileGPU) return 25
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
+    if (isMobile) return 25
     if (isHighRes) return 30
     return 45
-  }, [gl, size])
+  }, [])
   
   const groupRef = useRef()
   const data = useRef([])
@@ -715,22 +703,17 @@ function WASDControls() {
 }
 
 function FloatingParticles({ bounds }) {
-  const { gl, size } = useThree()
   const ref = useRef()
   
   // Dynamically determine particle count
   const particleCount = useMemo(() => {
-    const renderer = gl.getParameter(gl.RENDERER) || ''
-    const pixelCount = size.width * size.height
-    
-    const isMobileGPU = renderer.toLowerCase().includes('mali') || 
-                        renderer.toLowerCase().includes('adreno')
+    const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
     const isHighRes = pixelCount > 2073600
-    
-    if (isMobileGPU) return 150
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
+    if (isMobile) return 150
     if (isHighRes) return 200
     return 300
-  }, [gl, size])
+  }, [])
   
   const [positions, speeds] = useMemo(() => {
     const pos = new Float32Array(particleCount * 3)
@@ -783,26 +766,23 @@ function CameraMetrics() {
 
 function EffectComposerWrapper() {
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
-  const { gl, size } = useThree()
+  const { size } = useThree()
   
-  // Optimize bloom based on device capabilities and resolution
+  // Optimize bloom based on screen resolution
   const bloomConfig = useMemo(() => {
     const pixelCount = size.width * size.height
-    const renderer = gl.getParameter(gl.RENDERER) || ''
     
-    // On lower-end devices or high res, reduce blur passes
-    const isLowEndOrHighRes = pixelCount > 2073600 || // > 1440p
-                               renderer.toLowerCase().includes('mali') ||
-                               renderer.toLowerCase().includes('adreno')
+    // On high-res displays, reduce blur quality
+    const isHighRes = pixelCount > 2073600 // > 1440p
     
     return {
-      luminanceThreshold: isLowEndOrHighRes ? 0.2 : 0.15,
+      luminanceThreshold: isHighRes ? 0.2 : 0.15,
       luminanceSmoothing: 0.9,
       intensity: 0.5,
-      mipmapBlur: !isLowEndOrHighRes, // Disable mipmap blur on high-res screens
-      blur: isLowEndOrHighRes ? 4 : 6, // Reduce blur passes on resource-constrained devices
+      mipmapBlur: !isHighRes,
+      blur: isHighRes ? 4 : 6,
     }
-  }, [gl, size])
+  }, [size])
   
   if (!bloomEnabled) return null
   
