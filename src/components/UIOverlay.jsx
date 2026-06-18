@@ -56,17 +56,16 @@ function UIOverlay({ config }) {
   const [flash, setFlash] = useState(false)
 
   const takeScreenshot = () => {
-    const canvas = document.querySelector('canvas')
-    if (!canvas) return
-    requestAnimationFrame(() => {
-      const link = document.createElement('a')
-      link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-      setFlash(true)
-      setTimeout(() => setFlash(false), 600)
-    })
+    window.dispatchEvent(new CustomEvent('take-screenshot'))
+    setFlash(true)
+    setTimeout(() => setFlash(false), 600)
   }
+
+  useEffect(() => {
+    const handler = () => { setFlash(true); setTimeout(() => setFlash(false), 600) }
+    window.addEventListener('screenshot-flash', handler)
+    return () => window.removeEventListener('screenshot-flash', handler)
+  }, [])
 
   useEffect(() => {
     const handler = () => searchRef.current?.focus()

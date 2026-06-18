@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -307,6 +307,7 @@ function SceneContent() {
       <Starfield />
       <FloatingParticles />
       <CameraAnimator />
+      <ScreenshotCapture />
 
       <TimelineLines demons={demons} />
       {demons.map((demon) => (
@@ -316,6 +317,27 @@ function SceneContent() {
       {selectedDemon && <Tooltip demon={selectedDemon} />}
     </>
   )
+}
+
+function ScreenshotCapture() {
+  const { gl, scene, camera } = useThree()
+
+  const handle = useCallback(() => {
+    gl.render(scene, camera)
+    const canvas = gl.domElement
+    const link = document.createElement('a')
+    link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    window.dispatchEvent(new CustomEvent('screenshot-flash'))
+  }, [gl, scene, camera])
+
+  useEffect(() => {
+    window.addEventListener('take-screenshot', handle)
+    return () => window.removeEventListener('take-screenshot', handle)
+  }, [handle])
+
+  return null
 }
 
 function TimelineScene() {
