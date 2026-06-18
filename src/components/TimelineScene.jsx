@@ -770,8 +770,8 @@ function SceneContent() {
 
   return (
     <>
-      <EffectComposer enabled={bloomEnabled}>
-        <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
+      <EffectComposer frameBufferType={THREE.FloatType}>
+        <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={bloomEnabled ? 0.5 : 0} mipmapBlur />
       </EffectComposer>
 
       <CameraMetrics />
