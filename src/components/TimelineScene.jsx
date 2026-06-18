@@ -599,6 +599,61 @@ function ShootingStars() {
   )
 }
 
+function WASDControls() {
+  const { camera, controls } = useThree()
+  const keys = useRef({ w: false, a: false, s: false, d: false })
+
+  useEffect(() => {
+    const down = (e) => {
+      switch (e.code) {
+        case 'KeyW': keys.current.w = true; break
+        case 'KeyA': keys.current.a = true; break
+        case 'KeyS': keys.current.s = true; break
+        case 'KeyD': keys.current.d = true; break
+      }
+    }
+    const up = (e) => {
+      switch (e.code) {
+        case 'KeyW': keys.current.w = false; break
+        case 'KeyA': keys.current.a = false; break
+        case 'KeyS': keys.current.s = false; break
+        case 'KeyD': keys.current.d = false; break
+      }
+    }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+    }
+  }, [])
+
+  useFrame((_, delta) => {
+    if (!controls) return
+    const speed = 20 * delta
+    const forward = new THREE.Vector3()
+    camera.getWorldDirection(forward)
+    forward.y = 0
+    forward.normalize()
+    const right = new THREE.Vector3()
+    right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize()
+
+    const move = new THREE.Vector3()
+    if (keys.current.w) move.add(forward)
+    if (keys.current.s) move.sub(forward)
+    if (keys.current.a) move.sub(right)
+    if (keys.current.d) move.add(right)
+    if (move.length() === 0) return
+    move.normalize().multiplyScalar(speed)
+
+    camera.position.add(move)
+    controls.target.add(move)
+    controls.update()
+  })
+
+  return null
+}
+
 function FloatingParticles() {
   const ref = useRef()
   const count = 300
@@ -651,6 +706,7 @@ function SceneContent() {
       <pointLight position={[0, 0, 0]} intensity={0.8} color="#c084fc" />
 
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
+      <WASDControls />
 
       <Nebula />
       <Starfield />
