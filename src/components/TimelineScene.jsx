@@ -734,6 +734,12 @@ function CameraMetrics() {
   return null
 }
 
+function ClearGuard() {
+  const { gl } = useThree()
+  useFrame(() => { gl.autoClear = true }, -1)
+  return null
+}
+
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
@@ -752,9 +758,12 @@ function SceneContent() {
 
   return (
     <>
-      <EffectComposer resolutionScale={0.5}>
-        {bloomEnabled && <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />}
-      </EffectComposer>
+      <ClearGuard />
+      {bloomEnabled && (
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
+        </EffectComposer>
+      )}
 
       <CameraMetrics />
       <fog attach="fog" args={['#0a0015', 80, 800]} />
