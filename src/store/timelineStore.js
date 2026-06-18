@@ -80,6 +80,14 @@ export const useTimelineStore = create(
         }
       },
 
+      editDemon: (id, updates) => {
+        const state = get()
+        const updated = state.demons.map((d) =>
+          d.id === id ? { ...d, ...updates, position: d.position } : d
+        )
+        set({ demons: assignPositions(updated) })
+      },
+
       cloudSave: async () => {
         const state = get()
         if (!state.user || !supabase) return

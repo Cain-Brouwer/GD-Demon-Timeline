@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
+import EditDemonModal from './EditDemonModal'
 import DemonSphere from './DemonSphere'
 import TimelineLines from './TimelineLines'
 
@@ -27,6 +28,7 @@ const DIFFICULTY_COLORS = {
 
 function Tooltip({ demon }) {
   const [showExtra, setShowExtra] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
   const setYoutubeVideo = useTimelineStore((s) => s.setYoutubeVideo)
   const videoId = demon.showcaseUrl ? getYouTubeId(demon.showcaseUrl) : null
 
@@ -136,7 +138,26 @@ function Tooltip({ demon }) {
             </button>
           </div>
         )}
+        <button
+          onClick={() => setShowEdit(true)}
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            color: 'white',
+            padding: '4px 10px',
+            borderRadius: 4,
+            fontSize: 11,
+            fontFamily: 'monospace',
+            cursor: 'pointer',
+            marginTop: videoId ? 4 : 0,
+            opacity: 0.6,
+          }}
+        >
+          ✎ Edit
+        </button>
       </div>
+      {showEdit && <EditDemonModal demon={demon} onClose={() => setShowEdit(false)} />}
     </Html>
   )
 }
