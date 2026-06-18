@@ -702,58 +702,6 @@ function UIOverlay({ config }) {
             </button>
           </div>
         ))}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            marginBottom: 3,
-            marginTop: 6,
-            fontSize: isMobile ? 12 : 12,
-            padding: isMobile ? '6px 3px' : '2px 3px',
-            borderRadius: 4,
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-          }}
-        >
-          <span
-            style={{
-              width: isMobile ? 6 : 8,
-              height: isMobile ? 6 : 8,
-              borderRadius: '50%',
-              background: '#ffdd99',
-              display: 'inline-block',
-              flexShrink: 0,
-              boxShadow: '0 0 8px #ffdd99',
-            }}
-          />
-          <span
-            style={{
-              flex: 1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              opacity: 0.7,
-            }}
-          >
-            TON 618
-          </span>
-          <button
-            onClick={() => setGoToPosition([80, 50, -200])}
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'white',
-              padding: isMobile ? '4px 8px' : '2px 8px',
-              borderRadius: 4,
-              fontSize: isMobile ? 11 : 10,
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            go to
-          </button>
-        </div>
         <button
           onClick={() => setShowAddModal(true)}
           style={{

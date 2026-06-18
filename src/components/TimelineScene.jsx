@@ -506,9 +506,34 @@ function Ton618BlackHole() {
   )
 }
 
+const TON_618_DATA = {
+  id: 20,
+  name: "TON 618",
+  creator: "Team Space",
+  creatorRealName: "Spanyel, Platnuu & more",
+  difficulty: "Impossible / Extreme Demon (Nerfed)",
+  stars: 10,
+  duration: "1:07",
+  description: "A legendary cosmic-apocalyptic project named after one of the largest known supermassive black holes.",
+  theme: "Cosmic/Hell/Impossible",
+  releaseDate: "2021-09-18",
+  dateBeaten: "N/A",
+  musicTitle: "Thermodynamix",
+  musicArtist: "DJVI",
+  levelID: 73783685,
+  gameVersion: "2.11",
+  series: "Illusion List / Impossible Levels",
+  notes: "Originally built as an unpassable humanly impossible level requiring absurdly high CPS and frame-perfect 360Hz+ execution. Highly prominent on the Illusion List before various nerfed versions were made for top-tier players.",
+  progress: 0,
+  keyMechanics: ["Extreme Wave (zero-pixel margins)", "High CPS Spam", "Tight Ship Corridors", "UFO", "Ball"],
+  showcaseUrl: "https://www.youtube.com/watch?v=KexhCTpuQZY",
+  position: [80, -35, -300],
+}
+
 function BlackHole() {
   const groupRef = useRef()
   const { scene } = useGLTF('/models/black_hole.glb')
+  const selectDemon = useTimelineStore((s) => s.selectDemon)
 
   useEffect(() => {
     if (scene) {
@@ -520,9 +545,18 @@ function BlackHole() {
     }
   }, [scene])
 
+  const handleClick = (e) => {
+    e.stopPropagation()
+    selectDemon(TON_618_DATA)
+  }
+
   return (
     <group ref={groupRef} position={[80, -40, -300]} scale={[0.15, 0.15, 0.15]}>
       <primitive object={scene} />
+      <mesh onClick={handleClick}>
+        <sphereGeometry args={[1000, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
     </group>
   )
 }
