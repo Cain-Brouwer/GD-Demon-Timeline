@@ -25,19 +25,6 @@
       "musicArtist": "Another Artist",
       "showcaseUrl": "",
       "progress": 0
-    },
-    {
-      "id": 618,
-      "name": "TON 618",
-      "creator": "Quasar",
-      "difficulty": "Extreme Demon",
-      "stars": 15,
-      "description": "66 billion solar masses — a hyper-luminous quasar 10 billion light-years away. The event horizon would dwarf our entire solar system hundreds of times over. Inescapable.",
-      "dateBeaten": "N/A",
-      "musicTitle": "TON 618",
-      "musicArtist": "Astral Void",
-      "showcaseUrl": "",
-      "progress": 0
     }
   ]
 }

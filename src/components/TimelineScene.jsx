@@ -365,6 +365,82 @@ function Nebula() {
   )
 }
 
+function Ton618BlackHole() {
+  const groupRef = useRef()
+  const diskRef = useRef()
+  const glowRef = useRef()
+
+  const diskTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 64
+    const ctx = canvas.getContext('2d')
+    const g = ctx.createLinearGradient(0, 0, 512, 0)
+    g.addColorStop(0, 'rgba(255,255,255,0)')
+    g.addColorStop(0.1, 'rgba(255,180,255,0.15)')
+    g.addColorStop(0.3, 'rgba(200,100,255,0.3)')
+    g.addColorStop(0.5, 'rgba(255,80,180,0.5)')
+    g.addColorStop(0.7, 'rgba(200,50,100,0.25)')
+    g.addColorStop(0.9, 'rgba(100,20,60,0.1)')
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 512, 64)
+    return new THREE.CanvasTexture(canvas)
+  }, [])
+
+  const glowTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 256
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+    const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+    g.addColorStop(0, 'rgba(200,100,255,0.08)')
+    g.addColorStop(0.3, 'rgba(150,50,200,0.04)')
+    g.addColorStop(0.6, 'rgba(100,20,150,0.02)')
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 256, 256)
+    return new THREE.CanvasTexture(canvas)
+  }, [])
+
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += 0.001
+    }
+    if (diskRef.current) {
+      diskRef.current.rotation.z = Math.sin(Date.now() * 0.0002) * 0.05
+    }
+    if (glowRef.current) {
+      glowRef.current.material.opacity = 0.06 + Math.sin(Date.now() * 0.0005) * 0.02
+    }
+  })
+
+  return (
+    <group ref={groupRef} position={[200, -20, -200]}>
+      <mesh ref={diskRef} rotation={[Math.PI * 0.3, 0, 0]}>
+        <ringGeometry args={[22, 55, 64]} />
+        <meshBasicMaterial map={diskTexture} transparent side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh rotation={[Math.PI * 0.3, 0, 0]}>
+        <ringGeometry args={[20, 23, 48]} />
+        <meshBasicMaterial color="#ff66ff" transparent opacity={0.15} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[8, 24, 24]} />
+        <meshBasicMaterial color="#0a0015" />
+      </mesh>
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[30, 24, 24]} />
+        <meshBasicMaterial map={glowTexture} transparent depthWrite={false} />
+      </mesh>
+      <mesh rotation={[Math.PI * 0.3, 0, Math.PI * 0.5]}>
+        <ringGeometry args={[18, 19, 48]} />
+        <meshBasicMaterial color="#440066" transparent opacity={0.06} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+    </group>
+  )
+}
+
 function FloatingParticles() {
   const ref = useRef()
   const count = 300
@@ -421,6 +497,7 @@ function SceneContent() {
       <Nebula />
       <Starfield />
       <FloatingParticles />
+      <Ton618BlackHole />
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
