@@ -202,9 +202,13 @@ function UIOverlay({ config }) {
             color: '#c084fc',
             cursor: isMobile ? 'pointer' : 'default',
             userSelect: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
           }}
         >
           {isMobile ? (showLeftDetail ? `${config.title} ▼` : `${config.title} ▶`) : config.title}
+          <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
         </h1>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <p style={{ margin: 0, fontSize: isMobile ? 11 : 14, opacity: 0.8 }}>
