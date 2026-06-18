@@ -279,16 +279,11 @@ function Starfield({ bounds }) {
   )
 }
 
-const _nebMatrix = new THREE.Matrix4()
-const _nebPos = new THREE.Vector3()
-const _nebQuat = new THREE.Quaternion()
-const _nebScale = new THREE.Vector3()
-const _nebAxis = new THREE.Vector3(0, 0, 1)
-
 function Nebula({ bounds }) {
   const count = 45
-  const meshRef = useRef()
+  const groupRef = useRef()
   const data = useRef([])
+  const sprites = useRef([])
 
   const cloudTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
@@ -305,76 +300,61 @@ function Nebula({ bounds }) {
     return new THREE.CanvasTexture(canvas)
   }, [])
 
-  const { geometry, material } = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(1, 1)
-    const mat = new THREE.MeshBasicMaterial({
-      map: cloudTexture,
-      transparent: true,
-      depthWrite: false,
-      opacity: 0.04,
-      side: THREE.DoubleSide,
-    })
-    return { geometry: geo, material: mat }
-  }, [cloudTexture])
-
   useEffect(() => {
-    if (!meshRef.current) return
-    const mesh = meshRef.current
+    if (!groupRef.current) return
+    const group = groupRef.current
+    while (group.children.length) group.remove(group.children[0])
+    sprites.current = []
+    data.current = []
+
     const colorList = [
       [0.4, 0.15, 0.7], [0.7, 0.2, 0.5], [0.2, 0.1, 0.6],
       [0.5, 0.1, 0.3], [0.3, 0.2, 0.7], [0.6, 0.25, 0.4],
       [0.15, 0.05, 0.5], [0.8, 0.3, 0.6], [0.25, 0.15, 0.65],
     ]
-    const matrix = new THREE.Matrix4()
-    const position = new THREE.Vector3()
-    const quaternion = new THREE.Quaternion()
-    const scale = new THREE.Vector3()
-    const color = new THREE.Color()
 
     for (let i = 0; i < count; i++) {
       const c = colorList[Math.floor(Math.random() * colorList.length)]
+      const bright = 0.3 + Math.random() * 0.7
       const s = 30 + Math.random() * 100
       const x = bounds.centerX + (Math.random() - 0.5) * (bounds.width + 200)
       const y = (Math.random() - 0.5) * 200 + 10
       const z = (Math.random() - 0.5) * 500
-      const bright = 0.3 + Math.random() * 0.7
       data.current[i] = {
         baseX: x, baseY: y, baseZ: z,
-        size: s, rotSpeed: 0.0002 + Math.random() * 0.0006,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: 0.0002 + Math.random() * 0.0006,
       }
-      position.set(x, y, z)
-      quaternion.identity()
-      scale.set(s, s, 1)
-      matrix.compose(position, quaternion, scale)
-      mesh.setMatrixAt(i, matrix)
-      color.setRGB(c[0] * bright, c[1] * bright, c[2] * bright)
-      mesh.setColorAt(i, color)
+
+      const mat = new THREE.SpriteMaterial({
+        map: cloudTexture,
+        transparent: true,
+        depthWrite: false,
+        opacity: 0.04,
+        color: new THREE.Color(c[0] * bright, c[1] * bright, c[2] * bright),
+      })
+      const sprite = new THREE.Sprite(mat)
+      sprite.position.set(x, y, z)
+      sprite.scale.set(s, s, 1)
+      group.add(sprite)
+      sprites.current.push(sprite)
     }
-    mesh.instanceMatrix.needsUpdate = true
-    mesh.instanceColor.needsUpdate = true
   }, [bounds])
 
   useFrame(() => {
-    if (!meshRef.current) return
-    const mesh = meshRef.current
     const t = Date.now()
-
     for (let i = 0; i < count; i++) {
       const d = data.current[i]
-      _nebPos.set(
-        d.baseX + Math.sin(t * 0.0003 + i) * 10,
-        d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5,
-        d.baseZ,
-      )
-      _nebQuat.setFromAxisAngle(_nebAxis, t * d.rotSpeed)
-      _nebScale.set(d.size, d.size, 1)
-      _nebMatrix.compose(_nebPos, _nebQuat, _nebScale)
-      mesh.setMatrixAt(i, _nebMatrix)
+      const sprite = sprites.current[i]
+      if (!sprite) continue
+      sprite.position.x = d.baseX + Math.sin(t * 0.0003 + i) * 10
+      sprite.position.y = d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5
+      sprite.position.z = d.baseZ
+      sprite.material.rotation = t * d.rotSpeed + d.rot
     }
-    mesh.instanceMatrix.needsUpdate = true
   })
 
-  return <instancedMesh ref={meshRef} args={[geometry, material, count]} />
+  return <group ref={groupRef} />
 }
 
 function Ton618BlackHole() {
