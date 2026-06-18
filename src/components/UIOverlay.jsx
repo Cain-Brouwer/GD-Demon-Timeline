@@ -60,6 +60,15 @@ function FpsCounter() {
   )
 }
 
+function CamPos() {
+  const pos = useTimelineStore((s) => s.cameraPos)
+  return (
+    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#888', opacity: 0.5, marginLeft: 8 }}>
+      {pos.x}, {pos.y}, {pos.z}
+    </span>
+  )
+}
+
 function UIOverlay({ config }) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
@@ -346,6 +355,7 @@ function UIOverlay({ config }) {
           {config.title} {showLeftDetail ? '▼' : '▶'}
           <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
           <FpsCounter />
+          <CamPos />
         </h1>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <p style={{ margin: 0, fontSize: isMobile ? 11 : 14, opacity: 0.8 }}>

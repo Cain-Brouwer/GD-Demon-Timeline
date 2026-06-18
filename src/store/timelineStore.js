@@ -38,6 +38,8 @@ export const useTimelineStore = create(
       clearYoutubeVideo: () => set({ youtubeVideoId: null, youtubeSoundOnly: false }),
       bloomEnabled: false,
       setBloomEnabled: (v) => set({ bloomEnabled: v }),
+      cameraPos: { x: 0, y: 0, z: 0 },
+      setCameraPos: (pos) => set({ cameraPos: pos }),
 
       user: null,
       cloudStatus: 'idle',

@@ -541,6 +541,7 @@ function BlackHole() {
     if (scene) {
       scene.traverse((child) => {
         if (child.isMesh) {
+          child.frustumCulled = false
           child.geometry.computeBoundingSphere()
         }
       })
@@ -744,6 +745,23 @@ function FloatingParticles() {
   )
 }
 
+function CameraMetrics() {
+  const setCameraPos = useTimelineStore((s) => s.setCameraPos)
+  const lastUpdate = useRef(0)
+  useFrame(({ camera }) => {
+    const now = performance.now()
+    if (now - lastUpdate.current > 200) {
+      lastUpdate.current = now
+      setCameraPos({
+        x: Math.round(camera.position.x),
+        y: Math.round(camera.position.y),
+        z: Math.round(camera.position.z),
+      })
+    }
+  })
+  return null
+}
+
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
@@ -752,10 +770,11 @@ function SceneContent() {
 
   return (
     <>
-      <EffectComposer>
-        {bloomEnabled && <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />}
+      <EffectComposer enabled={bloomEnabled}>
+        <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
       </EffectComposer>
 
+      <CameraMetrics />
       <fog attach="fog" args={['#0a0015', 80, 800]} />
       <ambientLight intensity={0.5} />
       <directionalLight position={[30, 40, 30]} intensity={1.5} />

@@ -137,6 +137,7 @@ function DemonSphere({ demon, textures }) {
 
       <sprite
         ref={glowRef}
+        frustumCulled={false}
         scale={[2.5, 2.5, 1]}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
@@ -153,6 +154,7 @@ function DemonSphere({ demon, textures }) {
 
       <sprite
         ref={spriteRef}
+        frustumCulled={false}
         scale={[2, 2, 1]}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
@@ -166,7 +168,7 @@ function DemonSphere({ demon, textures }) {
         />
       </sprite>
 
-      <sprite ref={nameRef} scale={[nameAspect * 1.5, 1.5, 1]}>
+      <sprite ref={nameRef} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
         <spriteMaterial
           map={nameTexture}
           transparent
