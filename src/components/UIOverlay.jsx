@@ -56,16 +56,21 @@ function UIOverlay({ config }) {
   const [flash, setFlash] = useState(false)
 
   const takeScreenshot = () => {
-    window.dispatchEvent(new CustomEvent('take-screenshot'))
-    setFlash(true)
-    setTimeout(() => setFlash(false), 600)
+    import('html2canvas').then(({ default: html2canvas }) => {
+      html2canvas(document.body, {
+        backgroundColor: '#0a0015',
+        useCORS: true,
+        scale: 1,
+      }).then((canvas) => {
+        const link = document.createElement('a')
+        link.download = `gd-timeline-${new Date().toISOString().split('T')[0]}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+        setFlash(true)
+        setTimeout(() => setFlash(false), 600)
+      })
+    })
   }
-
-  useEffect(() => {
-    const handler = () => { setFlash(true); setTimeout(() => setFlash(false), 600) }
-    window.addEventListener('screenshot-flash', handler)
-    return () => window.removeEventListener('screenshot-flash', handler)
-  }, [])
 
   useEffect(() => {
     const handler = () => searchRef.current?.focus()
