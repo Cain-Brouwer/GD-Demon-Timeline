@@ -55,7 +55,7 @@ function DemonSphere({ demon }) {
     selectDemon(demon)
   }
 
-  const glowSize = hovered || isSelected ? 90 : isFuture ? 0 : 70
+  const glowSize = hovered || isSelected ? 90 : 60
 
   return (
     <group position={[x, 0, z]}>
