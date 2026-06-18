@@ -716,11 +716,9 @@ function SceneContent() {
 
   return (
     <>
-      {bloomEnabled && (
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
-        </EffectComposer>
-      )}
+      <EffectComposer>
+        {bloomEnabled && <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />}
+      </EffectComposer>
 
       <fog attach="fog" args={['#0a0015', 80, 800]} />
       <ambientLight intensity={0.5} />
