@@ -23,3 +23,8 @@ body,
     opacity: 1;
   }
 }
+
+@keyframes flashOut {
+  from { opacity: 0.15; }
+  to { opacity: 0; }
+}

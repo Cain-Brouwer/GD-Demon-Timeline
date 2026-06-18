@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 import EditDemonModal from './EditDemonModal'
@@ -228,30 +229,109 @@ function CameraAnimator() {
 
 function Starfield() {
   const starsRef = useRef()
-  const positions = useMemo(() => {
-    const count = 2500
-    const arr = new Float32Array(count * 3)
+  const { positions, colors, sizes, phases } = useMemo(() => {
+    const count = 3000
+    const pos = new Float32Array(count * 3)
+    const col = new Float32Array(count * 3)
+    const siz = new Float32Array(count)
+    const pha = new Float32Array(count)
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 600
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 300
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 600 - 150
+      pos[i * 3] = (Math.random() - 0.5) * 800
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 400
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 800 - 200
+
+      const tint = Math.random()
+      if (tint < 0.6) {
+        col[i * 3] = 1; col[i * 3 + 1] = 1; col[i * 3 + 2] = 1
+      } else if (tint < 0.8) {
+        col[i * 3] = 0.7; col[i * 3 + 1] = 0.8; col[i * 3 + 2] = 1
+      } else if (tint < 0.95) {
+        col[i * 3] = 1; col[i * 3 + 1] = 0.9; col[i * 3 + 2] = 0.6
+      } else {
+        col[i * 3] = 1; col[i * 3 + 1] = 0.4; col[i * 3 + 2] = 0.8
+      }
+
+      siz[i] = 0.15 + Math.random() * 0.5
+      pha[i] = Math.random() * Math.PI * 2
     }
-    return arr
+    return { positions: pos, colors: col, sizes: siz, phases: pha }
   }, [])
 
-  useFrame((state) => {
-    if (starsRef.current) {
-      starsRef.current.rotation.y += 0.00015
+  const sizeAttr = useMemo(() => {
+    const arr = new Float32Array(3000)
+    for (let i = 0; i < 3000; i++) arr[i] = sizes[i]
+    return arr
+  }, [sizes])
+
+  useFrame(({ clock }) => {
+    if (!starsRef.current) return
+    starsRef.current.rotation.y += 0.00012
+    const t = clock.getElapsedTime()
+    const siz = starsRef.current.geometry.attributes.size.array
+    for (let i = 0; i < 3000; i++) {
+      siz[i] = sizes[i] * (0.5 + 0.5 * Math.sin(t * 0.5 + phases[i]))
     }
+    starsRef.current.geometry.attributes.size.needsUpdate = true
   })
 
   return (
     <points ref={starsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={2500} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-position" count={3000} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={3000} array={colors} itemSize={3} />
+        <bufferAttribute attach="attributes-size" count={3000} array={sizeAttr} itemSize={1} />
       </bufferGeometry>
-      <pointsMaterial size={0.35} color="white" transparent opacity={0.5} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={0.35} vertexColors transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
+  )
+}
+
+function Nebula() {
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 1024
+    canvas.height = 512
+    const ctx = canvas.getContext('2d')
+
+    const gradient = ctx.createRadialGradient(512, 256, 0, 512, 256, 512)
+    gradient.addColorStop(0, 'rgba(120, 50, 200, 0.15)')
+    gradient.addColorStop(0.2, 'rgba(80, 30, 160, 0.1)')
+    gradient.addColorStop(0.4, 'rgba(200, 50, 150, 0.06)')
+    gradient.addColorStop(0.6, 'rgba(50, 30, 120, 0.04)')
+    gradient.addColorStop(1, 'rgba(10, 0, 21, 0)')
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 1024, 512)
+
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random() * 1024
+      const y = Math.random() * 512
+      const r = 60 + Math.random() * 200
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+      g.addColorStop(0, `rgba(${80 + Math.random() * 80}, ${30 + Math.random() * 50}, ${120 + Math.random() * 80}, 0.04)`)
+      g.addColorStop(1, 'rgba(10, 0, 21, 0)')
+      ctx.fillStyle = g
+      ctx.fillRect(x - r, y - r, r * 2, r * 2)
+    }
+
+    const tex = new THREE.CanvasTexture(canvas)
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+    return tex
+  }, [])
+
+  const ref = useRef()
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.0003
+      ref.current.rotation.x = Math.sin(Date.now() * 0.00005) * 0.02
+    }
+  })
+
+  return (
+    <mesh ref={ref} position={[0, -20, -120]}>
+      <planeGeometry args={[300, 200]} />
+      <meshBasicMaterial map={texture} transparent depthWrite={false} side={THREE.DoubleSide} />
+    </mesh>
   )
 }
 
@@ -296,6 +376,10 @@ function SceneContent() {
 
   return (
     <>
+      <EffectComposer>
+        <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
+      </EffectComposer>
+
       <fog attach="fog" args={['#0a0015', 60, 220]} />
       <ambientLight intensity={0.5} />
       <directionalLight position={[30, 40, 30]} intensity={1.5} />
@@ -304,6 +388,7 @@ function SceneContent() {
 
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
 
+      <Nebula />
       <Starfield />
       <FloatingParticles />
       <CameraAnimator />
