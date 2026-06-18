@@ -3,6 +3,7 @@ import { useState, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Html, useGLTF, useTexture } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 import EditDemonModal from './EditDemonModal'
@@ -285,6 +286,35 @@ const _nebQuat = new THREE.Quaternion()
 const _nebScale = new THREE.Vector3()
 const _nebAxis = new THREE.Vector3(0, 0, 1)
 
+function createCloudCluster() {
+  const subGeos = []
+  const offsets = [
+    [0, 0, 0, 1],
+    [0.55, 0.25, 0.15, 0.55],
+    [-0.45, 0.15, -0.35, 0.5],
+    [0.25, -0.45, 0.25, 0.45],
+    [-0.25, -0.35, 0.15, 0.4],
+    [0.1, 0.15, -0.55, 0.4],
+    [-0.15, 0.45, -0.1, 0.35],
+  ]
+  for (const [ox, oy, oz, r] of offsets) {
+    const geo = new THREE.SphereGeometry(r, 6, 5)
+    const pos = geo.attributes.position.array
+    for (let i = 0; i < pos.length; i += 3) {
+      pos[i] += ox
+      pos[i + 1] += oy
+      pos[i + 2] += oz
+    }
+    geo.computeVertexNormals()
+    subGeos.push(geo)
+  }
+  const merged = mergeGeometries(subGeos)
+  merged.computeBoundingSphere()
+  return merged
+}
+
+const _cloudClusterGeo = createCloudCluster()
+
 function Nebula({ bounds }) {
   const count = 45
   const meshRef = useRef()
@@ -292,29 +322,27 @@ function Nebula({ bounds }) {
 
   const cloudTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 256
-    canvas.height = 256
+    canvas.width = 128
+    canvas.height = 128
     const ctx = canvas.getContext('2d')
-    const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
-    g.addColorStop(0, 'rgba(255,255,255,0.15)')
-    g.addColorStop(0.3, 'rgba(255,255,255,0.06)')
-    g.addColorStop(0.6, 'rgba(255,255,255,0.02)')
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
+    g.addColorStop(0, 'rgba(255,255,255,0.2)')
+    g.addColorStop(0.3, 'rgba(255,255,255,0.08)')
+    g.addColorStop(0.6, 'rgba(255,255,255,0.03)')
     g.addColorStop(1, 'rgba(255,255,255,0)')
     ctx.fillStyle = g
-    ctx.fillRect(0, 0, 256, 256)
+    ctx.fillRect(0, 0, 128, 128)
     return new THREE.CanvasTexture(canvas)
   }, [])
 
-  const { geometry, material } = useMemo(() => {
-    const geo = new THREE.SphereGeometry(1, 8, 6)
-    const mat = new THREE.MeshBasicMaterial({
+  const material = useMemo(() => {
+    return new THREE.MeshBasicMaterial({
       map: cloudTexture,
       transparent: true,
       depthWrite: false,
-      opacity: 0.04,
+      opacity: 0.015,
       side: THREE.DoubleSide,
     })
-    return { geometry: geo, material: mat }
   }, [cloudTexture])
 
   useEffect(() => {
@@ -374,7 +402,7 @@ function Nebula({ bounds }) {
     mesh.instanceMatrix.needsUpdate = true
   })
 
-  return <instancedMesh ref={meshRef} args={[geometry, material, count]} />
+  return <instancedMesh ref={meshRef} args={[_cloudClusterGeo, material, count]} />
 }
 
 function Ton618BlackHole() {
