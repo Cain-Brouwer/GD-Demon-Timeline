@@ -231,18 +231,20 @@ function CameraAnimator() {
   return null
 }
 
-function Starfield() {
+function Starfield({ bounds }) {
   const starsRef = useRef()
-  const { positions, colors, sizes, phases } = useMemo(() => {
-    const count = 3000
+  const { positions, colors, sizes } = useMemo(() => {
+    const count = 1500
+    const margin = 100
+    const xRange = bounds.width / 2 + margin
+    const zRange = xRange * 0.6
     const pos = new Float32Array(count * 3)
     const col = new Float32Array(count * 3)
     const siz = new Float32Array(count)
-    const pha = new Float32Array(count)
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 800
+      pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * xRange * 2
       pos[i * 3 + 1] = (Math.random() - 0.5) * 400
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 800 - 200
+      pos[i * 3 + 2] = bounds.centerX + (Math.random() - 0.5) * zRange * 2
 
       const tint = Math.random()
       if (tint < 0.6) {
@@ -256,34 +258,22 @@ function Starfield() {
       }
 
       siz[i] = 0.15 + Math.random() * 0.5
-      pha[i] = Math.random() * Math.PI * 2
     }
-    return { positions: pos, colors: col, sizes: siz, phases: pha }
-  }, [])
+    return { positions: pos, colors: col, sizes: siz }
+  }, [bounds])
 
-  const sizeAttr = useMemo(() => {
-    const arr = new Float32Array(3000)
-    for (let i = 0; i < 3000; i++) arr[i] = sizes[i]
-    return arr
-  }, [sizes])
-
-  useFrame(({ clock }) => {
-    if (!starsRef.current) return
-    starsRef.current.rotation.y += 0.00012
-    const t = clock.getElapsedTime()
-    const siz = starsRef.current.geometry.attributes.size.array
-    for (let i = 0; i < 3000; i++) {
-      siz[i] = sizes[i] * (0.5 + 0.5 * Math.sin(t * 0.5 + phases[i]))
+  useFrame(() => {
+    if (starsRef.current) {
+      starsRef.current.rotation.y += 0.00012
     }
-    starsRef.current.geometry.attributes.size.needsUpdate = true
   })
 
   return (
     <points ref={starsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={3000} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={3000} array={colors} itemSize={3} />
-        <bufferAttribute attach="attributes-size" count={3000} array={sizeAttr} itemSize={1} />
+        <bufferAttribute attach="attributes-position" count={1500} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={1500} array={colors} itemSize={3} />
+        <bufferAttribute attach="attributes-size" count={1500} array={sizes} itemSize={1} />
       </bufferGeometry>
       <pointsMaterial size={0.35} vertexColors transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
@@ -296,7 +286,7 @@ const _nebQuat = new THREE.Quaternion()
 const _nebScale = new THREE.Vector3()
 const _nebAxis = new THREE.Vector3(0, 0, 1)
 
-function Nebula() {
+function Nebula({ bounds }) {
   const count = 45
   const meshRef = useRef()
   const data = useRef([])
@@ -345,9 +335,9 @@ function Nebula() {
     for (let i = 0; i < count; i++) {
       const c = colorList[Math.floor(Math.random() * colorList.length)]
       const s = 30 + Math.random() * 100
-      const x = (Math.random() - 0.5) * 500
+      const x = bounds.centerX + (Math.random() - 0.5) * bounds.width * 1.2
       const y = (Math.random() - 0.5) * 200 + 10
-      const z = (Math.random() - 0.5) * 400 - 50
+      const z = (Math.random() - 0.5) * bounds.width * 0.6
       const bright = 0.3 + Math.random() * 0.7
       data.current[i] = {
         baseX: x, baseY: y, baseZ: z,
@@ -363,7 +353,7 @@ function Nebula() {
     }
     mesh.instanceMatrix.needsUpdate = true
     mesh.instanceColor.needsUpdate = true
-  }, [])
+  }, [bounds])
 
   useFrame(() => {
     if (!meshRef.current) return
@@ -564,9 +554,11 @@ function BlackHole() {
   )
 }
 
-function ShootingStars() {
+function ShootingStars({ bounds }) {
   const count = 6
   const meshes = useRef([])
+  const boundsRef = useRef(bounds)
+  boundsRef.current = bounds
   const state = useRef(
     Array.from({ length: count }, () => ({
       active: false,
@@ -606,9 +598,10 @@ function ShootingStars() {
           s.active = true
           s.life = 0
           const angle = Math.random() * Math.PI * 2
-          s.x = (Math.random() - 0.5) * 400
+          const b = boundsRef.current
+          s.x = b.centerX + (Math.random() - 0.5) * b.width * 1.2
           s.y = 100 + Math.random() * 120
-          s.z = (Math.random() - 0.5) * 300 - 80
+          s.z = (Math.random() - 0.5) * b.width * 0.4
           const speed = 80 + Math.random() * 60
           s.dx = -Math.cos(angle) * speed
           s.dy = -(10 + Math.random() * 20)
@@ -710,20 +703,20 @@ function WASDControls() {
   return null
 }
 
-function FloatingParticles() {
+function FloatingParticles({ bounds }) {
   const ref = useRef()
   const count = 300
   const [positions, speeds] = useMemo(() => {
     const pos = new Float32Array(count * 3)
     const spd = new Float32Array(count)
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 300
+      pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * bounds.width * 1.5
       pos[i * 3 + 1] = (Math.random() - 0.5) * 100
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 200
+      pos[i * 3 + 2] = (Math.random() - 0.5) * bounds.width * 0.5
       spd[i] = 0.2 + Math.random() * 0.5
     }
     return [pos, spd]
-  }, [])
+  }, [bounds])
 
   useFrame((state) => {
     if (!ref.current) return
@@ -767,13 +760,16 @@ function SceneContent() {
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const textures = useTexture(ICON_MAP)
-  const voidGroup = useRef()
 
-  useFrame(({ camera }) => {
-    if (voidGroup.current) {
-      voidGroup.current.position.x = camera.position.x
-    }
-  })
+  const timelineBounds = useMemo(() => {
+    if (demons.length === 0) return { centerX: 0, width: 400 }
+    const xs = demons.map((d) => d.position[0])
+    const minX = Math.min(...xs)
+    const maxX = Math.max(...xs)
+    const width = Math.max(maxX - minX, 400)
+    const centerX = (minX + maxX) / 2
+    return { centerX, width }
+  }, [demons])
 
   return (
     <>
@@ -791,12 +787,10 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      <group ref={voidGroup}>
-        <Nebula />
-        <Starfield />
-        <FloatingParticles />
-        <ShootingStars />
-      </group>
+      <Nebula bounds={timelineBounds} />
+      <Starfield bounds={timelineBounds} />
+      <FloatingParticles bounds={timelineBounds} />
+      <ShootingStars bounds={timelineBounds} />
       <BlackHole />
       <CameraAnimator />
 
