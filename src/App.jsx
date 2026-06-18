@@ -1,5 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
-import TimelineScene from './components/TimelineScene'
+import { useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import UIOverlay from './components/UIOverlay'
 import YouTubeModal from './components/YouTubeModal'
 import YouTubeMiniPlayer from './components/YouTubeMiniPlayer'
@@ -8,6 +7,8 @@ import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
 import config from './timeline.config'
 import './App.css'
+
+const TimelineScene = lazy(() => import('./components/TimelineScene'))
 
 const APP_KEY = import.meta.env.VITE_APP_KEY
 
@@ -135,7 +136,9 @@ function App() {
 
   return (
     <div className="app">
-      <TimelineScene />
+      <Suspense fallback={<div style={{ position:'fixed', inset:0, background:'#0a0015' }} />}>
+        <TimelineScene />
+      </Suspense>
       <UIOverlay config={config} />
       <YouTubeModal />
       <YouTubeMiniPlayer key={youtubeVideoId || 'none'} />

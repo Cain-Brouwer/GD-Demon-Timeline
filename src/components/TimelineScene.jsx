@@ -288,6 +288,10 @@ function Starfield() {
 }
 
 function Nebula() {
+  const count = 45
+  const meshRef = useRef()
+  const data = useRef([])
+
   const cloudTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 256
@@ -303,67 +307,80 @@ function Nebula() {
     return new THREE.CanvasTexture(canvas)
   }, [])
 
-  const patches = useMemo(() => {
-    const result = []
-    const colors = [
+  const { geometry, material } = useMemo(() => {
+    const geo = new THREE.PlaneGeometry(1, 1)
+    const mat = new THREE.MeshBasicMaterial({
+      map: cloudTexture,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0.04,
+      side: THREE.DoubleSide,
+    })
+    return { geometry: geo, material: mat }
+  }, [cloudTexture])
+
+  useEffect(() => {
+    if (!meshRef.current) return
+    const mesh = meshRef.current
+    const colorList = [
       [0.4, 0.15, 0.7], [0.7, 0.2, 0.5], [0.2, 0.1, 0.6],
       [0.5, 0.1, 0.3], [0.3, 0.2, 0.7], [0.6, 0.25, 0.4],
       [0.15, 0.05, 0.5], [0.8, 0.3, 0.6], [0.25, 0.15, 0.65],
     ]
-    for (let i = 0; i < 45; i++) {
-      const c = colors[Math.floor(Math.random() * colors.length)]
-      result.push({
-        position: [
-          (Math.random() - 0.5) * 500,
-          (Math.random() - 0.5) * 200 + 10,
-          (Math.random() - 0.5) * 400 - 50,
-        ],
-        size: 30 + Math.random() * 100,
-        opacity: 0.02 + Math.random() * 0.06,
-        color: c,
-        rotSpeed: 0.0002 + Math.random() * 0.0006,
-        driftX: (Math.random() - 0.5) * 0.02,
-        driftY: (Math.random() - 0.5) * 0.01,
-      })
+    const matrix = new THREE.Matrix4()
+    const position = new THREE.Vector3()
+    const quaternion = new THREE.Quaternion()
+    const scale = new THREE.Vector3()
+    const color = new THREE.Color()
+
+    for (let i = 0; i < count; i++) {
+      const c = colorList[Math.floor(Math.random() * colorList.length)]
+      const s = 30 + Math.random() * 100
+      const x = (Math.random() - 0.5) * 500
+      const y = (Math.random() - 0.5) * 200 + 10
+      const z = (Math.random() - 0.5) * 400 - 50
+      const bright = 0.3 + Math.random() * 0.7
+      data.current[i] = {
+        baseX: x, baseY: y, baseZ: z,
+        size: s, rotSpeed: 0.0002 + Math.random() * 0.0006,
+      }
+      position.set(x, y, z)
+      quaternion.identity()
+      scale.set(s, s, 1)
+      matrix.compose(position, quaternion, scale)
+      mesh.setMatrixAt(i, matrix)
+      color.setRGB(c[0] * bright, c[1] * bright, c[2] * bright)
+      mesh.setColorAt(i, color)
     }
-    return result
+    mesh.instanceMatrix.needsUpdate = true
+    mesh.instanceColor.needsUpdate = true
   }, [])
 
-  const refs = useRef([])
-  refs.current = refs.current.slice(0, patches.length)
-
   useFrame(() => {
-    for (let i = 0; i < patches.length; i++) {
-      const mesh = refs.current[i]
-      if (!mesh) continue
-      const p = patches[i]
-      mesh.rotation.z += p.rotSpeed
-      mesh.position.x += Math.sin(Date.now() * 0.0003 + i) * 0.003
-      mesh.position.y += Math.sin(Date.now() * 0.0004 + i * 1.3) * 0.002
+    if (!meshRef.current) return
+    const mesh = meshRef.current
+    const matrix = new THREE.Matrix4()
+    const position = new THREE.Vector3()
+    const quaternion = new THREE.Quaternion()
+    const scale = new THREE.Vector3()
+    const t = Date.now()
+
+    for (let i = 0; i < count; i++) {
+      const d = data.current[i]
+      position.set(
+        d.baseX + Math.sin(t * 0.0003 + i) * 10,
+        d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5,
+        d.baseZ,
+      )
+      quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), t * d.rotSpeed)
+      scale.set(d.size, d.size, 1)
+      matrix.compose(position, quaternion, scale)
+      mesh.setMatrixAt(i, matrix)
     }
+    mesh.instanceMatrix.needsUpdate = true
   })
 
-  return (
-    <group>
-      {patches.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { refs.current[i] = el }}
-          position={p.position}
-        >
-          <planeGeometry args={[p.size, p.size]} />
-          <meshBasicMaterial
-            map={cloudTexture}
-            transparent
-            depthWrite={false}
-            opacity={p.opacity}
-            color={p.color}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ))}
-    </group>
-  )
+  return <instancedMesh ref={meshRef} args={[geometry, material, count]} />
 }
 
 function Ton618BlackHole() {
@@ -500,7 +517,7 @@ function Gargantua() {
     if (scene) {
       scene.traverse((child) => {
         if (child.isMesh) {
-          child.frustumCulled = false
+          child.geometry.computeBoundingSphere()
         }
       })
     }
