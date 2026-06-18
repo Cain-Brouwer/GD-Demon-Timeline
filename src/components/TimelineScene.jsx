@@ -752,9 +752,11 @@ function SceneContent() {
 
   return (
     <>
-      <EffectComposer frameBufferType={THREE.FloatType}>
-        <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={bloomEnabled ? 0.5 : 0} mipmapBlur />
-      </EffectComposer>
+      {bloomEnabled && (
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
+        </EffectComposer>
+      )}
 
       <CameraMetrics />
       <fog attach="fog" args={['#0a0015', 80, 800]} />
@@ -770,7 +772,7 @@ function SceneContent() {
       <Starfield bounds={timelineBounds} />
       <FloatingParticles bounds={timelineBounds} />
       <ShootingStars bounds={timelineBounds} />
-      {/* <BlackHole /> */}
+      <BlackHole />
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
