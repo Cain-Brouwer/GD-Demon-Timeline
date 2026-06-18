@@ -449,7 +449,7 @@ function Ton618BlackHole() {
   const tilt = Math.PI * 0.25
 
   return (
-    <group ref={groupRef} position={[200, -20, -200]}>
+    <group ref={groupRef} position={[60, -10, -80]}>
       <mesh rotation={[tilt, 0, 0]}>
         <ringGeometry args={[14, 60, 80]} />
         <meshBasicMaterial map={diskTexture} transparent side={THREE.DoubleSide} depthWrite={false} />
@@ -523,7 +523,7 @@ function SceneContent() {
         <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={0.5} mipmapBlur />
       </EffectComposer>
 
-      <fog attach="fog" args={['#0a0015', 60, 220]} />
+      <fog attach="fog" args={['#0a0015', 80, 400]} />
       <ambientLight intensity={0.5} />
       <directionalLight position={[30, 40, 30]} intensity={1.5} />
       <directionalLight position={[-30, 20, 20]} intensity={0.6} />
