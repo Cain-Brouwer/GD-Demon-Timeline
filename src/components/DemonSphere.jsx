@@ -92,6 +92,13 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
 
     const screenScale = Math.max(0.3, dist / 50)
     const floatY = Math.sin(t * 0.8 + x) * 0.3
+    
+    const baseOrder = 10000 - Math.round(dist * 10)
+    if (glowRef.current) glowRef.current.renderOrder = baseOrder
+    if (spriteRef.current) spriteRef.current.renderOrder = baseOrder + 1
+    if (nameRef.current) nameRef.current.renderOrder = baseOrder + 2
+    if (ringRef.current) ringRef.current.renderOrder = baseOrder + 3
+    
     if (spriteRef.current) {
       spriteRef.current.position.y = floatY
     }
