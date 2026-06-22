@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react'
+import { memo, useRef, useState, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
@@ -62,7 +62,7 @@ function createNameTexture(name, isFuture) {
   return tex
 }
 
-function DemonSphere({ demon, textures, renderSettings }) {
+const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showRing, showLabel }) {
   const spriteRef = useRef()
   const glowRef = useRef()
   const nameRef = useRef()
@@ -95,23 +95,23 @@ function DemonSphere({ demon, textures, renderSettings }) {
     if (spriteRef.current) {
       spriteRef.current.position.y = floatY
     }
-    if (glowRef.current && renderSettings.demonGlow) {
+    if (glowRef.current && showGlow) {
       glowRef.current.position.y = floatY
     }
     if (spriteRef.current) {
       scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
       const s = scaleRef.current * screenScale
       spriteRef.current.scale.setScalar(s)
-      if (glowRef.current && renderSettings.demonGlow) {
+      if (glowRef.current && showGlow) {
         glowRef.current.scale.setScalar(s * 1.25)
       }
     }
-    if (nameRef.current && renderSettings.demonLabels) {
+    if (nameRef.current && showLabel) {
       nameRef.current.position.y = floatY + 2.8 * screenScale
       nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
       nameRef.current.visible = dist < 50
     }
-    if (ringRef.current && renderSettings.demonRings) {
+    if (ringRef.current && showRing) {
       ringRef.current.rotation.z += 0.008
       ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
       const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
@@ -130,7 +130,7 @@ function DemonSphere({ demon, textures, renderSettings }) {
 
   return (
     <group position={[x, 0, z]}>
-      {renderSettings.demonRings && (
+      {showRing && (
         <mesh ref={ringRef}>
           <torusGeometry args={[1.4, 0.04, 8, 16]} />
           <meshBasicMaterial
@@ -142,7 +142,7 @@ function DemonSphere({ demon, textures, renderSettings }) {
         </mesh>
       )}
 
-      {renderSettings.demonGlow && (
+      {showGlow && (
         <sprite
           ref={glowRef}
           frustumCulled={false}
@@ -177,7 +177,7 @@ function DemonSphere({ demon, textures, renderSettings }) {
         />
       </sprite>
 
-      {renderSettings.demonLabels && (
+      {showLabel && (
         <sprite ref={nameRef} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
           <spriteMaterial
             map={nameTexture}
@@ -188,6 +188,6 @@ function DemonSphere({ demon, textures, renderSettings }) {
       )}
     </group>
   )
-}
+})
 
 export default DemonSphere

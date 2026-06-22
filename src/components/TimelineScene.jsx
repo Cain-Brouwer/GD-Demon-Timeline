@@ -833,7 +833,14 @@ function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
-  const renderSettings = useTimelineStore((s) => s.renderSettings)
+  const showNebula = useTimelineStore((s) => s.renderSettings.nebula)
+  const showStarfield = useTimelineStore((s) => s.renderSettings.starfield)
+  const showParticles = useTimelineStore((s) => s.renderSettings.floatingParticles)
+  const showShootingStars = useTimelineStore((s) => s.renderSettings.shootingStars)
+  const showBlackHole = useTimelineStore((s) => s.renderSettings.blackHole)
+  const showDemonGlow = useTimelineStore((s) => s.renderSettings.demonGlow)
+  const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
+  const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
   const textures = useTexture(ICON_MAP)
 
   const timelineBounds = useMemo(() => {
@@ -862,16 +869,19 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      {renderSettings.nebula && <Nebula bounds={timelineBounds} />}
-      {renderSettings.starfield && <Starfield bounds={timelineBounds} />}
-      {renderSettings.floatingParticles && <FloatingParticles bounds={timelineBounds} />}
-      {renderSettings.shootingStars && <ShootingStars bounds={timelineBounds} />}
-      {renderSettings.blackHole && <BlackHole />}
+      {showNebula && <Nebula bounds={timelineBounds} />}
+      {showStarfield && <Starfield bounds={timelineBounds} />}
+      {showParticles && <FloatingParticles bounds={timelineBounds} />}
+      {showShootingStars && <ShootingStars bounds={timelineBounds} />}
+      {showBlackHole && <BlackHole />}
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
       {demons.map((demon) => (
-        <DemonSphere key={demon.id} demon={demon} textures={textures} renderSettings={renderSettings} />
+        <DemonSphere key={demon.id} demon={demon} textures={textures}
+          showGlow={showDemonGlow}
+          showRing={showDemonRings}
+          showLabel={showDemonLabels} />
       ))}
 
       {selectedDemon && <Tooltip demon={selectedDemon} />}
