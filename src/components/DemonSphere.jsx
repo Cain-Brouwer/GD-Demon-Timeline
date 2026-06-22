@@ -93,12 +93,6 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
     const screenScale = Math.max(0.3, dist / 50)
     const floatY = Math.sin(t * 0.8 + x) * 0.3
     
-    const baseOrder = 10000 - Math.round(dist * 10)
-    if (glowRef.current) glowRef.current.renderOrder = baseOrder
-    if (spriteRef.current) spriteRef.current.renderOrder = baseOrder + 1
-    if (nameRef.current) nameRef.current.renderOrder = baseOrder + 2
-    if (ringRef.current) ringRef.current.renderOrder = baseOrder + 3
-    
     if (spriteRef.current) {
       spriteRef.current.position.y = floatY
     }
@@ -134,11 +128,12 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
   }
 
   const colorObj = useMemo(() => new THREE.Color(diffColor), [diffColor])
+  const rOrder = demon.id * 4
 
   return (
     <group position={[x, 0, z]}>
       {showRing && (
-        <mesh ref={ringRef}>
+        <mesh ref={ringRef} renderOrder={rOrder + 3}>
           <torusGeometry args={[1.4, 0.04, 8, 16]} />
           <meshBasicMaterial
             color={isFuture ? '#555555' : diffColor}
@@ -152,6 +147,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       {showGlow && (
         <sprite
           ref={glowRef}
+          renderOrder={rOrder}
           frustumCulled={false}
           scale={[2.5, 2.5, 1]}
           onPointerOver={() => setHovered(true)}
@@ -170,6 +166,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
 
       <sprite
         ref={spriteRef}
+        renderOrder={rOrder + 1}
         frustumCulled={false}
         scale={[2, 2, 1]}
         onPointerOver={() => setHovered(true)}
@@ -178,14 +175,14 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       >
         <spriteMaterial
           map={iconTexture}
-          transparent
+          transparent={isFuture}
           opacity={isFuture ? 0.35 : 1}
-          depthWrite={false}
+          depthWrite={!isFuture}
         />
       </sprite>
 
       {showLabel && (
-        <sprite ref={nameRef} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
+        <sprite ref={nameRef} renderOrder={rOrder + 2} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
           <spriteMaterial
             map={nameTexture}
             transparent
