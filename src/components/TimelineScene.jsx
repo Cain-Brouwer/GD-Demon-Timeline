@@ -833,6 +833,7 @@ function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
+  const renderSettings = useTimelineStore((s) => s.renderSettings)
   const textures = useTexture(ICON_MAP)
 
   const timelineBounds = useMemo(() => {
@@ -861,16 +862,16 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      <Nebula bounds={timelineBounds} />
-      <Starfield bounds={timelineBounds} />
-      <FloatingParticles bounds={timelineBounds} />
-      <ShootingStars bounds={timelineBounds} />
-      <BlackHole />
+      {renderSettings.nebula && <Nebula bounds={timelineBounds} />}
+      {renderSettings.starfield && <Starfield bounds={timelineBounds} />}
+      {renderSettings.floatingParticles && <FloatingParticles bounds={timelineBounds} />}
+      {renderSettings.shootingStars && <ShootingStars bounds={timelineBounds} />}
+      {renderSettings.blackHole && <BlackHole />}
       <CameraAnimator />
 
       <TimelineLines demons={demons} />
       {demons.map((demon) => (
-        <DemonSphere key={demon.id} demon={demon} textures={textures} />
+        <DemonSphere key={demon.id} demon={demon} textures={textures} renderSettings={renderSettings} />
       ))}
 
       {selectedDemon && <Tooltip demon={selectedDemon} />}

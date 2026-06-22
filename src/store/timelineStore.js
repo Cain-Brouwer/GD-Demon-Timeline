@@ -41,6 +41,22 @@ export const useTimelineStore = create(
       cameraPos: { x: 0, y: 0, z: 0 },
       setCameraPos: (pos) => set({ cameraPos: pos }),
 
+      renderSettings: {
+        starfield: true,
+        nebula: true,
+        floatingParticles: true,
+        shootingStars: true,
+        blackHole: true,
+        demonLabels: true,
+        demonRings: true,
+        demonGlow: true,
+      },
+      setRenderSetting: (key, value) => set((s) => ({
+        renderSettings: { ...s.renderSettings, [key]: value }
+      })),
+      showSettings: false,
+      setShowSettings: (v) => set({ showSettings: v }),
+
       user: null,
       cloudStatus: 'idle',
 
@@ -155,6 +171,7 @@ export const useTimelineStore = create(
       name: 'gd-timeline-storage',
       partialize: (state) => ({
         demons: state.demons,
+        renderSettings: state.renderSettings,
       }),
     }
   )

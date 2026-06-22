@@ -7,6 +7,7 @@ import DocsModal from './DocsModal'
 import AuthModal from './AuthModal'
 import StatsModal from './StatsModal'
 import ImportExportModal from './ImportExportModal'
+import SettingsModal from './SettingsModal'
 
 const DIFFICULTY_COLORS = {
   'Easy Demon': '#00ff00',
@@ -76,6 +77,7 @@ function UIOverlay({ config }) {
   const [showAuth, setShowAuth] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [showImportExport, setShowImportExport] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [showMobileList, setShowMobileList] = useState(false)
   const isMobile = useMedia('(max-width: 768px)')
   const [showLeftDetail, setShowLeftDetail] = useState(!isMobile)
@@ -185,6 +187,7 @@ function UIOverlay({ config }) {
       {showDocs && <DocsModal onClose={() => setShowDocs(false)} />}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {showStats && <StatsModal demons={demons} onClose={() => setShowStats(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showImportExport && (
         <ImportExportModal
           demons={demons}
@@ -785,6 +788,18 @@ function UIOverlay({ config }) {
             }}
           >
             docs
+          </span>
+          <span
+            onClick={() => setShowSettings(true)}
+            style={{
+              marginLeft: isMobile ? 8 : 12,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.4)',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            settings
           </span>
           {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug') && (
             <span

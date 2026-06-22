@@ -62,7 +62,7 @@ function createNameTexture(name, isFuture) {
   return tex
 }
 
-function DemonSphere({ demon, textures }) {
+function DemonSphere({ demon, textures, renderSettings }) {
   const spriteRef = useRef()
   const glowRef = useRef()
   const nameRef = useRef()
@@ -95,21 +95,23 @@ function DemonSphere({ demon, textures }) {
     if (spriteRef.current) {
       spriteRef.current.position.y = floatY
     }
-    if (glowRef.current) {
+    if (glowRef.current && renderSettings.demonGlow) {
       glowRef.current.position.y = floatY
     }
     if (spriteRef.current) {
       scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
       const s = scaleRef.current * screenScale
       spriteRef.current.scale.setScalar(s)
-      glowRef.current.scale.setScalar(s * 1.25)
+      if (glowRef.current && renderSettings.demonGlow) {
+        glowRef.current.scale.setScalar(s * 1.25)
+      }
     }
-    if (nameRef.current) {
+    if (nameRef.current && renderSettings.demonLabels) {
       nameRef.current.position.y = floatY + 2.8 * screenScale
       nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
       nameRef.current.visible = dist < 50
     }
-    if (ringRef.current) {
+    if (ringRef.current && renderSettings.demonRings) {
       ringRef.current.rotation.z += 0.008
       ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
       const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
@@ -128,32 +130,36 @@ function DemonSphere({ demon, textures }) {
 
   return (
     <group position={[x, 0, z]}>
-      <mesh ref={ringRef}>
-        <torusGeometry args={[1.4, 0.04, 8, 16]} />
-        <meshBasicMaterial
-          color={isFuture ? '#555555' : diffColor}
-          transparent
-          opacity={isFuture ? 0.15 : (hovered || isSelected ? 0.5 : 0.25)}
-          depthWrite={false}
-        />
-      </mesh>
+      {renderSettings.demonRings && (
+        <mesh ref={ringRef}>
+          <torusGeometry args={[1.4, 0.04, 8, 16]} />
+          <meshBasicMaterial
+            color={isFuture ? '#555555' : diffColor}
+            transparent
+            opacity={isFuture ? 0.15 : (hovered || isSelected ? 0.5 : 0.25)}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
 
-      <sprite
-        ref={glowRef}
-        frustumCulled={false}
-        scale={[2.5, 2.5, 1]}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-        onClick={handleClick}
-      >
-        <spriteMaterial
-          map={glowCircle}
-          color={isFuture ? '#666666' : colorObj}
-          transparent
-          opacity={isFuture ? 0.1 : 0.25}
-          depthWrite={false}
-        />
-      </sprite>
+      {renderSettings.demonGlow && (
+        <sprite
+          ref={glowRef}
+          frustumCulled={false}
+          scale={[2.5, 2.5, 1]}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
+          onClick={handleClick}
+        >
+          <spriteMaterial
+            map={glowCircle}
+            color={isFuture ? '#666666' : colorObj}
+            transparent
+            opacity={isFuture ? 0.1 : 0.25}
+            depthWrite={false}
+          />
+        </sprite>
+      )}
 
       <sprite
         ref={spriteRef}
@@ -171,13 +177,15 @@ function DemonSphere({ demon, textures }) {
         />
       </sprite>
 
-      <sprite ref={nameRef} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
-        <spriteMaterial
-          map={nameTexture}
-          transparent
-          depthWrite={false}
-        />
-      </sprite>
+      {renderSettings.demonLabels && (
+        <sprite ref={nameRef} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
+          <spriteMaterial
+            map={nameTexture}
+            transparent
+            depthWrite={false}
+          />
+        </sprite>
+      )}
     </group>
   )
 }
