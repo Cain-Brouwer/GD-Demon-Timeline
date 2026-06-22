@@ -302,9 +302,8 @@ function Nebula({ bounds }) {
     return 45
   }, [])
   
-  const groupRef = useRef()
-  const data = useRef([])
-  const sprites = useRef([])
+  const pointsRef = useRef()
+  const baseData = useRef([])
 
   const cloudTexture = useMemo(() => {
     const canvas = document.createElement('canvas')
@@ -321,12 +320,10 @@ function Nebula({ bounds }) {
     return new THREE.CanvasTexture(canvas)
   }, [])
 
-  useEffect(() => {
-    if (!groupRef.current) return
-    const group = groupRef.current
-    while (group.children.length) group.remove(group.children[0])
-    sprites.current = []
-    data.current = []
+  const { positions, colors } = useMemo(() => {
+    const count = nebulaCount
+    const pos = new Float32Array(count * 3)
+    const col = new Float32Array(count * 3)
 
     const colorList = [
       [0.4, 0.15, 0.7], [0.7, 0.2, 0.5], [0.2, 0.1, 0.6],
@@ -334,50 +331,59 @@ function Nebula({ bounds }) {
       [0.15, 0.05, 0.5], [0.8, 0.3, 0.6], [0.25, 0.15, 0.65],
     ]
 
-    for (let i = 0; i < nebulaCount; i++) {
+    const bd = baseData.current
+    bd.length = 0
+    for (let i = 0; i < count; i++) {
       const c = colorList[Math.floor(Math.random() * colorList.length)]
       const bright = 0.3 + Math.random() * 0.7
-      const s = 30 + Math.random() * 100
       const x = bounds.centerX + (Math.random() - 0.5) * (bounds.width + 200)
       const y = (Math.random() - 0.5) * 200 + 10
       const z = (Math.random() - 0.5) * 500
-      data.current[i] = {
-        baseX: x, baseY: y, baseZ: z,
-        rot: Math.random() * Math.PI * 2,
-        rotSpeed: 0.0002 + Math.random() * 0.0006,
-      }
-
-      const mat = new THREE.SpriteMaterial({
-        map: cloudTexture,
-        transparent: true,
-        depthWrite: false,
-        opacity: 0.04,
-        color: new THREE.Color(c[0] * bright, c[1] * bright, c[2] * bright),
-      })
-      const sprite = new THREE.Sprite(mat)
-      sprite.position.set(x, y, z)
-      sprite.scale.set(s, s, 1)
-      group.add(sprite)
-      sprites.current.push(sprite)
+      bd.push({ baseX: x, baseY: y, baseZ: z })
+      pos[i * 3] = x
+      pos[i * 3 + 1] = y
+      pos[i * 3 + 2] = z
+      col[i * 3] = c[0] * bright
+      col[i * 3 + 1] = c[1] * bright
+      col[i * 3 + 2] = c[2] * bright
     }
+    return { positions: pos, colors: col }
   }, [bounds, nebulaCount])
 
   useFrame(() => {
     const end = perf.time('Nebula')
+    if (!pointsRef.current) { end(); return }
     const t = Date.now()
+    const pos = pointsRef.current.geometry.attributes.position.array
     for (let i = 0; i < nebulaCount; i++) {
-      const d = data.current[i]
-      const sprite = sprites.current[i]
-      if (!sprite) continue
-      sprite.position.x = d.baseX + Math.sin(t * 0.0003 + i) * 10
-      sprite.position.y = d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5
-      sprite.position.z = d.baseZ
-      sprite.material.rotation = t * d.rotSpeed + d.rot
+      const d = baseData.current[i]
+      if (!d) continue
+      pos[i * 3] = d.baseX + Math.sin(t * 0.0003 + i) * 10
+      pos[i * 3 + 1] = d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5
+      pos[i * 3 + 2] = d.baseZ
     }
+    pointsRef.current.geometry.attributes.position.needsUpdate = true
     end()
   }, undefined, [nebulaCount])
 
-  return <group ref={groupRef} />
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={nebulaCount} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={nebulaCount} array={colors} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial
+        map={cloudTexture}
+        size={60}
+        sizeAttenuation
+        vertexColors
+        transparent
+        opacity={0.04}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  )
 }
 
 function Ton618BlackHole() {
