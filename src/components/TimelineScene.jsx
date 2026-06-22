@@ -279,7 +279,7 @@ function Starfield({ bounds }) {
   })
 
   return (
-    <points ref={starsRef}>
+    <points ref={starsRef} renderOrder={-10000}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={starCount} array={positions} itemSize={3} />
         <bufferAttribute attach="attributes-color" count={starCount} array={colors} itemSize={3} />
@@ -367,7 +367,7 @@ function Nebula({ bounds }) {
   }, undefined, [nebulaCount])
 
   return (
-    <points ref={pointsRef}>
+    <points ref={pointsRef} renderOrder={-10000}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={nebulaCount} array={positions} itemSize={3} />
         <bufferAttribute attach="attributes-color" count={nebulaCount} array={colors} itemSize={3} />
@@ -643,6 +643,7 @@ function ShootingStars({ bounds }) {
         <mesh
           key={i}
           ref={(el) => { meshes.current[i] = el }}
+          renderOrder={-9999}
           visible={false}
         >
           <planeGeometry args={[4, 4]} />
@@ -751,7 +752,7 @@ function FloatingParticles({ bounds }) {
   }, undefined, [speeds, particleCount])
 
   return (
-    <points ref={ref}>
+    <points ref={ref} renderOrder={-10000}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
       </bufferGeometry>

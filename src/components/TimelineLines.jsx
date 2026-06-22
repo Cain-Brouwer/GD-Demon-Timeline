@@ -101,18 +101,19 @@ function TimelineLines({ demons }) {
 
   if (!curve || demons.length < 2) return null
 
+  const tlOrder = -5000
   return (
     <group>
-      <mesh geometry={glowGeo}>
+      <mesh geometry={glowGeo} renderOrder={tlOrder}>
         <meshBasicMaterial color="white" transparent opacity={0.06} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      <mesh geometry={coreGeo}>
+      <mesh geometry={coreGeo} renderOrder={tlOrder + 1}>
         <meshBasicMaterial color="white" transparent opacity={0.25} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      <mesh geometry={coreGeo}>
+      <mesh geometry={coreGeo} renderOrder={tlOrder + 2}>
         <meshBasicMaterial color="#c084fc" transparent opacity={0.1} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      <points ref={partRef}>
+      <points ref={partRef} renderOrder={tlOrder + 3}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" count={pCount} array={initPos} itemSize={3} />
         </bufferGeometry>

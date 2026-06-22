@@ -175,9 +175,9 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       >
         <spriteMaterial
           map={iconTexture}
-          transparent={isFuture}
+          transparent
           opacity={isFuture ? 0.35 : 1}
-          depthWrite={!isFuture}
+          depthWrite={false}
         />
       </sprite>
 
