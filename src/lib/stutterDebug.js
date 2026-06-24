@@ -25,7 +25,7 @@ const RECORD_STORAGE_KEY = 'stutter-debug-recording'
 
 /* Detection thresholds */
 const JITTER_MS = 15
-const STUTTER_MS = 30
+const STUTTER_MS = 25
 const SEVERE_MS = 50
 
 /* Jitter detection — rolling variance window */
@@ -61,6 +61,7 @@ let startTime = 0
 let totalJitterEvents = 0
 let totalStutterEvents = 0
 let totalSevereEvents = 0
+let jitterCooldown = 0
 
 function round(v, d) {
   if (d === undefined) d = 2
@@ -163,12 +164,16 @@ export function record(deltaSec, gl, camera) {
   jitterWIdx = (jitterWIdx + 1) % JITTER_WINDOW
   if (jitterWCount < JITTER_WINDOW) jitterWCount++
 
-  /* Jitter detection — std dev van rolling window > 5ms = pacing jitter */
+  /* Jitter detection — std dev van rolling window > 5ms = pacing jitter
+     Cooldown van JITTER_WINDOW frames na een jitter voorkomt dat 1 spike
+     10 events genereert (de spike moet door het hele window schuiven). */
+  if (jitterCooldown > 0) jitterCooldown--
   const jMean = computeJitterMean()
   const jSd = jMean > 0 ? computeJitterStddev(jMean) : 0
   const isJitter = warmedUp && jitterWCount >= JITTER_WINDOW && jSd > JITTER_STDDEV_THRESHOLD
 
-  if (isJitter) {
+  if (isJitter && jitterCooldown === 0) {
+    jitterCooldown = JITTER_WINDOW
     totalJitterEvents++
     if (recording) pushEvent(deltaMs, 'jitter', gl, camera)
   }
