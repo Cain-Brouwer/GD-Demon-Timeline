@@ -179,10 +179,8 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
           map={iconTexture}
           transparent
           opacity={isFuture ? 0.35 : 1}
-          depthWrite
-          polygonOffset
-          polygonOffsetFactor={-1 - demon.id * 0.01}
-          polygonOffsetUnits={-1}
+          depthWrite={false}
+          depthTest={false}
         />
       </sprite>
 
