@@ -818,6 +818,24 @@ function UIOverlay({ config }) {
               📋 debug
             </span>
           )}
+          <span
+            onClick={() => {
+              if (typeof window.__downloadRenderDump === 'function') {
+                window.__downloadRenderDump()
+              } else {
+                console.warn('[UIOverlay] Render debug not loaded yet')
+              }
+            }}
+            style={{
+              marginLeft: isMobile ? 8 : 12,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.4)',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            dump
+          </span>
       </div>
     </>,
     document.body

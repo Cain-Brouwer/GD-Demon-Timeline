@@ -275,19 +275,20 @@ if (typeof window !== 'undefined') {
   // Last resort: a tiny clickable label at the bottom of the page
   const debugBtn = document.createElement('div')
   debugBtn.id = 'render-debug-btn'
-  debugBtn.textContent = '⬇'
+  debugBtn.textContent = '⬇ dump'
   Object.assign(debugBtn.style, {
     position: 'fixed',
-    bottom: 4,
-    right: 4,
+    bottom: 48,
+    right: 10,
     zIndex: 99999,
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.15)',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.6)',
     cursor: 'pointer',
     fontFamily: 'monospace',
-    padding: '2px 4px',
-    borderRadius: 2,
-    background: 'rgba(255,255,255,0.03)',
+    padding: '4px 8px',
+    borderRadius: 4,
+    background: 'rgba(0,0,0,0.5)',
+    border: '1px solid rgba(255,255,255,0.12)',
     userSelect: 'none',
   })
   debugBtn.title = 'Download render debug dump (snapshots collected so far)'
