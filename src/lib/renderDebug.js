@@ -123,6 +123,7 @@ export function takeSnapshot(camera, gl, demons, renderSettings, scene) {
   if (snapshots.length > MAX_SNAPSHOTS) {
     snapshots = snapshots.slice(-MAX_SNAPSHOTS)
   }
+  if (snapshots.length <= 2) console.log('[RD] snapshot stored, total:', snapshots.length)
 
   // Persist to localStorage every 12 snapshots (60s)
   if (snapshots.length % 12 === 0) {
@@ -138,16 +139,21 @@ export function takeSnapshot(camera, gl, demons, renderSettings, scene) {
 }
 
 export function startCollector(getState, gl, camera, scene) {
-  if (timerId) return
+  if (timerId) { console.log('[RD] collector already running'); return }
+  console.log('[RD] collector starting', { hasGl: !!gl, hasCam: !!camera, hasScene: !!scene })
   const tick = () => {
     try {
       const st = getState()
+      console.log('[RD] tick firing, demonCount:', st.demons?.length)
+      if (!gl || !camera || !scene) {
+        console.warn('[RD] tick skipped — missing objects')
+        return
+      }
       takeSnapshot(camera, gl, st.demons, st.renderSettings, scene)
     } catch (e) {
       console.warn('[renderDebug] snapshot error:', e.message)
     }
   }
-  // First snapshot after 1s (give scene time to render)
   setTimeout(tick, 1000)
   timerId = setInterval(tick, SNAPSHOT_INTERVAL)
 }
