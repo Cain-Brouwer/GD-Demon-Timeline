@@ -104,6 +104,7 @@ function UIOverlay({ config }) {
   const searchRef = useRef(null)
   const [flash, setFlash] = useState(false)
   const [stutterStats, setStutterStats] = useState({ stutterCount: 0, recording: false, duration: 0 })
+  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug')
 
   useEffect(() => {
     const tick = () => setStutterStats(getStats())
@@ -368,7 +369,7 @@ function UIOverlay({ config }) {
           {config.title} {showLeftDetail ? '▼' : '▶'}
           <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
           <FpsCounter />
-          <CamPos />
+          {debugEnabled && <CamPos />}
         </h1>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <p style={{ margin: 0, fontSize: isMobile ? 11 : 14, opacity: 0.8 }}>
@@ -810,7 +811,7 @@ function UIOverlay({ config }) {
           >
             settings
           </span>
-          {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug') && (
+          {debugEnabled && (
             <span
               onClick={() => {
                 const result = perf.copyDump()
@@ -827,6 +828,7 @@ function UIOverlay({ config }) {
               📋 debug
             </span>
           )}
+          {debugEnabled && (<>
           <span
             onClick={() => {
               if (typeof window.__downloadRenderDump === 'function') {
@@ -883,6 +885,7 @@ function UIOverlay({ config }) {
           >
             ⬇sd
           </span>
+          </>)}
       </div>
     </>,
     document.body
