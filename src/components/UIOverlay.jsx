@@ -358,7 +358,6 @@ function UIOverlay({ config }) {
         >
           {config.title} {showLeftDetail ? '▼' : '▶'}
           <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
-          <span title="Pipeline test — commit deployed" style={{ fontSize: 9, background: 'rgba(74,222,128,0.15)', color: '#4ade80', padding: '2px 6px', borderRadius: 4 }}>✓ test</span>
           <FpsCounter />
           <CamPos />
         </h1>
