@@ -8,6 +8,7 @@ import { useTimelineStore } from '../store/timelineStore'
 import { perf } from '../lib/perfDebug'
 import EditDemonModal from './EditDemonModal'
 import DemonSphere, { ICON_MAP } from './DemonSphere'
+import RenderDebugger from './RenderDebugger'
 import TimelineLines from './TimelineLines'
 
 function getYouTubeId(url) {
@@ -873,6 +874,7 @@ function SceneContent() {
       <PerfMonitor />
       
       <CameraMetrics />
+      <RenderDebugger />
       <fog attach="fog" args={['#0a0015', 80, 800]} />
       <ambientLight intensity={0.5} />
       <directionalLight position={[30, 40, 30]} intensity={1.5} />
