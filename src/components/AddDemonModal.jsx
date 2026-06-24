@@ -19,6 +19,7 @@ function AddDemonModal({ onClose }) {
   const [description, setDescription] = useState('')
   const [dateBeaten, setDateBeaten] = useState('')
 
+  const todayStr = new Date().toISOString().split('T')[0]
   const maxId = demons.length > 0 ? Math.max(...demons.map((d) => d.id)) : 0
   const suggestedId = maxId + 1
 
@@ -30,7 +31,7 @@ function AddDemonModal({ onClose }) {
     addDemon({
       insertId: parsedId,
       beaten,
-      dateBeaten: beaten ? (dateBeaten || new Date().toISOString().split('T')[0]) : undefined,
+      dateBeaten: beaten ? (dateBeaten || todayStr) : undefined,
       name: name.trim(),
       creator: creator.trim() || 'Unknown',
       difficulty,
@@ -129,7 +130,7 @@ function AddDemonModal({ onClose }) {
                 Future
               </span>
               <span
-                onClick={() => { setBeaten(true); if (!dateBeaten) setDateBeaten(new Date().toISOString().split('T')[0]) }}
+                onClick={() => { setBeaten(true); if (!dateBeaten) setDateBeaten(todayStr) }}
                 style={{
                   fontSize: 11,
                   fontFamily: 'monospace',

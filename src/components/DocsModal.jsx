@@ -166,8 +166,8 @@ function DocsModal({ onClose }) {
               {section.title}
             </div>
             <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11, opacity: 0.8, lineHeight: 1.6 }}>
-              {section.items.map((item, i) => (
-                <li key={i}>{item}</li>
+              {section.items.map((item) => (
+                <li key={item}>{item}</li>
               ))}
             </ul>
           </div>

@@ -17,6 +17,8 @@ function EditDemonModal({ demon, onClose }) {
   const [progress, setProgress] = useState(demon.progress ?? 0)
   const [dateBeaten, setDateBeaten] = useState(demon.dateBeaten || '')
 
+  const todayStr = new Date().toISOString().split('T')[0]
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!name.trim()) return
@@ -29,7 +31,7 @@ function EditDemonModal({ demon, onClose }) {
       showcaseUrl: showcaseUrl.trim() || undefined,
       description: description.trim() || undefined,
       progress: progress,
-      dateBeaten: progress === 100 ? (dateBeaten || new Date().toISOString().split('T')[0]) : 'N/A',
+      dateBeaten: progress === 100 ? (dateBeaten || todayStr) : 'N/A',
     })
     onClose()
   }
@@ -150,7 +152,7 @@ function EditDemonModal({ demon, onClose }) {
               Future
             </span>
             <span
-              onClick={() => { setProgress(100); if (!dateBeaten || dateBeaten === 'N/A') setDateBeaten(new Date().toISOString().split('T')[0]) }}
+              onClick={() => { setProgress(100); if (!dateBeaten || dateBeaten === 'N/A') setDateBeaten(todayStr) }}
               style={{
                 fontSize: 11,
                 fontFamily: 'monospace',

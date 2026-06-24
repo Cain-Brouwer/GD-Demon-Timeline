@@ -74,7 +74,7 @@ function YouTubeMiniPlayer() {
 
   const demon = demons.find((d) => d.showcaseUrl && getYouTubeId(d.showcaseUrl) === videoId)
 
-  function fadeIn(targetVol, durationMs = 1500) {
+  const fadeIn = useCallback((targetVol, durationMs = 1500) => {
     if (fadeAnimRef.current) cancelAnimationFrame(fadeAnimRef.current)
     const start = performance.now()
     setFadingIn(true)
@@ -95,12 +95,13 @@ function YouTubeMiniPlayer() {
       }
     }
     fadeAnimRef.current = requestAnimationFrame(step)
-  }
+  }, [])
 
   useEffect(() => {
     if (!videoId || !soundOnly) return
 
     let cancelled = false
+    targetVolumeRef.current = volume
 
     loadYouTubeAPI().then(() => {
       if (cancelled) return
@@ -121,8 +122,7 @@ function YouTubeMiniPlayer() {
             setDuration(playerRef.current.getDuration())
             playerRef.current.setVolume(0)
             playerRef.current.playVideo()
-            targetVolumeRef.current = volume
-            fadeIn(volume)
+            fadeIn(targetVolumeRef.current)
           },
           onStateChange: (e) => {
             if (cancelled) return
@@ -147,7 +147,7 @@ function YouTubeMiniPlayer() {
         intervalRef.current = null
       }
     }
-  }, [videoId, soundOnly])
+  }, [videoId, soundOnly, fadeIn])
 
   useEffect(() => {
     if (playing && playerRef.current) {
