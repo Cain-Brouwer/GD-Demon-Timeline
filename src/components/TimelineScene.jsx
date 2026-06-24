@@ -179,56 +179,58 @@ function CameraAnimator() {
   const lastTrigger = useRef(0)
 
   useFrame(() => {
-    if (!controls) return
+    try {
+      if (!controls) return
 
-    const isViewAll = viewAllTrigger !== lastTrigger.current
-    if (isViewAll) {
-      lastTrigger.current = viewAllTrigger
-      animRef.current = null
-    }
-
-    if (!animRef.current && isViewAll && demons.length > 0) {
-      const xs = demons.map((d) => d.position[0])
-      const minX = Math.min(...xs)
-      const maxX = Math.max(...xs)
-      const centerX = (minX + maxX) / 2
-      const width = Math.max(maxX - minX, 100)
-      const camZ = Math.max(width * 0.8, 50)
-
-      animRef.current = {
-        start: performance.now(),
-        fromCam: camera.position.clone(),
-        fromTarget: controls.target.clone(),
-        toCam: new THREE.Vector3(centerX, camZ * 0.5, camZ),
-        toTarget: new THREE.Vector3(centerX, 0, 0),
-        onDone: () => {},
+      const isViewAll = viewAllTrigger !== lastTrigger.current
+      if (isViewAll) {
+        lastTrigger.current = viewAllTrigger
+        animRef.current = null
       }
-    } else if (!animRef.current && goToPosition) {
-      animRef.current = {
-        start: performance.now(),
-        fromCam: camera.position.clone(),
-        fromTarget: controls.target.clone(),
-        toCam: new THREE.Vector3(goToPosition[0], 10, 25),
-        toTarget: new THREE.Vector3(goToPosition[0], 0, goToPosition[2]),
-        onDone: clearGoToPosition,
+
+      if (!animRef.current && isViewAll && demons.length > 0) {
+        const xs = demons.map((d) => d.position[0])
+        const minX = Math.min(...xs)
+        const maxX = Math.max(...xs)
+        const centerX = (minX + maxX) / 2
+        const width = Math.max(maxX - minX, 100)
+        const camZ = Math.max(width * 0.8, 50)
+
+        animRef.current = {
+          start: performance.now(),
+          fromCam: camera.position.clone(),
+          fromTarget: controls.target.clone(),
+          toCam: new THREE.Vector3(centerX, camZ * 0.5, camZ),
+          toTarget: new THREE.Vector3(centerX, 0, 0),
+          onDone: () => {},
+        }
+      } else if (!animRef.current && goToPosition) {
+        animRef.current = {
+          start: performance.now(),
+          fromCam: camera.position.clone(),
+          fromTarget: controls.target.clone(),
+          toCam: new THREE.Vector3(goToPosition[0], 10, 25),
+          toTarget: new THREE.Vector3(goToPosition[0], 0, goToPosition[2]),
+          onDone: clearGoToPosition,
+        }
       }
-    }
 
-    if (!animRef.current) return
+      if (!animRef.current) return
 
-    const elapsed = performance.now() - animRef.current.start
-    const t = Math.min(elapsed / 600, 1)
-    const ease = 1 - Math.pow(1 - t, 3)
+      const elapsed = performance.now() - animRef.current.start
+      const t = Math.min(elapsed / 600, 1)
+      const ease = 1 - Math.pow(1 - t, 3)
 
-    camera.position.lerpVectors(animRef.current.fromCam, animRef.current.toCam, ease)
-    controls.target.lerpVectors(animRef.current.fromTarget, animRef.current.toTarget, ease)
-    controls.update()
+      camera.position.lerpVectors(animRef.current.fromCam, animRef.current.toCam, ease)
+      controls.target.lerpVectors(animRef.current.fromTarget, animRef.current.toTarget, ease)
+      controls.update()
 
-    if (t >= 1) {
-      animRef.current.onDone()
-      animRef.current = null
-    }
-  }, undefined, [viewAllTrigger, demons, goToPosition, clearGoToPosition])
+      if (t >= 1) {
+        animRef.current.onDone()
+        animRef.current = null
+      }
+    } catch (e) { console.warn('[useFrame CameraAnimator]', e) }
+  }, undefined)
 
   return null
 }
@@ -274,9 +276,11 @@ function Starfield({ bounds }) {
   }, [bounds, starCount])
 
   useFrame(() => {
-    if (starsRef.current) {
-      starsRef.current.rotation.y += 0.00012
-    }
+    try {
+      if (starsRef.current) {
+        starsRef.current.rotation.y += 0.00012
+      }
+    } catch (e) { console.warn('[useFrame Starfield]', e) }
   })
 
   return (
@@ -352,20 +356,23 @@ function Nebula({ bounds }) {
   }, [bounds, nebulaCount])
 
   useFrame(() => {
-    const end = perf.time('Nebula')
-    if (!pointsRef.current) { end(); return }
-    const t = Date.now()
-    const pos = pointsRef.current.geometry.attributes.position.array
-    for (let i = 0; i < nebulaCount; i++) {
-      const d = baseData.current[i]
-      if (!d) continue
-      pos[i * 3] = d.baseX + Math.sin(t * 0.0003 + i) * 10
-      pos[i * 3 + 1] = d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5
-      pos[i * 3 + 2] = d.baseZ
-    }
-    pointsRef.current.geometry.attributes.position.needsUpdate = true
-    end()
-  }, undefined, [nebulaCount])
+    try {
+      const end = perf.time('Nebula')
+      if (!pointsRef.current) { end(); return }
+      const t = Date.now()
+      if (!pointsRef.current.geometry?.attributes?.position?.array) { end(); return }
+      const pos = pointsRef.current.geometry.attributes.position.array
+      for (let i = 0; i < nebulaCount; i++) {
+        const d = baseData.current[i]
+        if (!d) continue
+        pos[i * 3] = d.baseX + Math.sin(t * 0.0003 + i) * 10
+        pos[i * 3 + 1] = d.baseY + Math.sin(t * 0.0004 + i * 1.3) * 5
+        pos[i * 3 + 2] = d.baseZ
+      }
+      pointsRef.current.geometry.attributes.position.needsUpdate = true
+      end()
+    } catch (e) { console.warn('[useFrame Nebula]', e) }
+  })
 
   return (
     <points ref={pointsRef} renderOrder={-10000}>
@@ -463,9 +470,11 @@ function Ton618BlackHole() {
   }, [])
 
   useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += 0.0008
-    }
+    try {
+      if (groupRef.current) {
+        groupRef.current.rotation.y += 0.0008
+      }
+    } catch (e) { console.warn('[useFrame Ton618BH]', e) }
   })
 
   const tilt = Math.PI * 0.25
@@ -537,20 +546,32 @@ function BlackHole() {
   const selectDemon = useTimelineStore((s) => s.selectDemon)
 
   useEffect(() => {
-    if (scene) {
+    if (!scene) return
+    try {
       let idx = 0
       scene.traverse((child) => {
         if (child.isMesh) {
           child.frustumCulled = false
           child.geometry.computeBoundingSphere()
-          child.material.depthWrite = true
-          child.material.polygonOffset = true
-          child.material.polygonOffsetFactor = -1 - idx * 0.01
-          child.material.polygonOffsetUnits = -1
+          const mat = child.material
+          if (!mat) return
+          if (Array.isArray(mat)) {
+            mat.forEach((m) => {
+              m.depthWrite = true
+              m.polygonOffset = true
+              m.polygonOffsetFactor = -1 - idx * 0.01
+              m.polygonOffsetUnits = -1
+            })
+          } else {
+            mat.depthWrite = true
+            mat.polygonOffset = true
+            mat.polygonOffsetFactor = -1 - idx * 0.01
+            mat.polygonOffsetUnits = -1
+          }
           idx++
         }
       })
-    }
+    } catch (e) { console.warn('[BlackHole effect]', e) }
   }, [scene])
 
   const handleClick = (e) => {
@@ -601,47 +622,51 @@ function ShootingStars({ bounds }) {
   }, [])
 
   useFrame(({ clock }) => {
-    const end = perf.time('ShootingStars')
-    for (let i = 0; i < count; i++) {
-      const s = state.current[i]
-      const mesh = meshes.current[i]
-      if (!mesh) continue
+    try {
+      const end = perf.time('ShootingStars')
+      for (let i = 0; i < count; i++) {
+        const s = state.current[i]
+        const mesh = meshes.current[i]
+        if (!mesh) continue
+        const mat = mesh.material
+        if (!mat) continue
 
-      if (!s.active) {
-        s.timer -= 0.016
-        mesh.visible = false
-        if (s.timer <= 0) {
-          s.active = true
-          s.life = 0
-          const angle = Math.random() * Math.PI * 2
-          const b = boundsRef.current
-          s.x = b.centerX + (Math.random() - 0.5) * b.width * 1.2
-          s.y = 100 + Math.random() * 120
-          s.z = (Math.random() - 0.5) * b.width * 0.4
-          const speed = 80 + Math.random() * 60
-          s.dx = -Math.cos(angle) * speed
-          s.dy = -(10 + Math.random() * 20)
-          s.dz = -Math.sin(angle) * speed * 0.6
-        }
-      } else {
-        s.life += 0.016
-        s.x += s.dx * 0.016
-        s.y += s.dy * 0.016
-        s.z += s.dz * 0.016
-        mesh.position.set(s.x, s.y, s.z)
-        const fade = Math.max(0, 1 - s.life / 1.2)
-        mesh.material.opacity = fade * fade * 0.9
-        const scale = 1 + fade * 3
-        mesh.scale.set(scale, scale, 1)
-        mesh.visible = fade > 0.01
-        if (s.life > 1.2) {
-          s.active = false
-          s.timer = 2 + Math.random() * 15
+        if (!s.active) {
+          s.timer -= 0.016
           mesh.visible = false
+          if (s.timer <= 0) {
+            s.active = true
+            s.life = 0
+            const angle = Math.random() * Math.PI * 2
+            const b = boundsRef.current
+            s.x = b.centerX + (Math.random() - 0.5) * b.width * 1.2
+            s.y = 100 + Math.random() * 120
+            s.z = (Math.random() - 0.5) * b.width * 0.4
+            const speed = 80 + Math.random() * 60
+            s.dx = -Math.cos(angle) * speed
+            s.dy = -(10 + Math.random() * 20)
+            s.dz = -Math.sin(angle) * speed * 0.6
+          }
+        } else {
+          s.life += 0.016
+          s.x += s.dx * 0.016
+          s.y += s.dy * 0.016
+          s.z += s.dz * 0.016
+          mesh.position.set(s.x, s.y, s.z)
+          const fade = Math.max(0, 1 - s.life / 1.2)
+          mat.opacity = fade * fade * 0.9
+          const scale = 1 + fade * 3
+          mesh.scale.set(scale, scale, 1)
+          mesh.visible = fade > 0.01
+          if (s.life > 1.2) {
+            s.active = false
+            s.timer = 2 + Math.random() * 15
+            mesh.visible = false
+          }
         }
       }
-    }
-    end()
+      end()
+    } catch (e) { console.warn('[useFrame ShootingStars]', e) }
   })
 
   return (
@@ -697,26 +722,28 @@ function WASDControls() {
   }, [])
 
   useFrame((_, delta) => {
-    if (!controls) return
-    if (!keys.current.w && !keys.current.a && !keys.current.s && !keys.current.d) return
-    const speed = (keys.current.shift ? 60 : 20) * delta
-    const forward = _forward.current
-    camera.getWorldDirection(forward)
-    forward.y = 0
-    forward.normalize()
-    const right = _right.current
-    right.crossVectors(forward, _up.current).normalize()
-    const move = _move.current.set(0, 0, 0)
-    if (keys.current.w) move.add(forward)
-    if (keys.current.s) move.sub(forward)
-    if (keys.current.a) move.sub(right)
-    if (keys.current.d) move.add(right)
-    if (move.length() === 0) return
-    move.normalize().multiplyScalar(speed)
-    camera.position.add(move)
-    controls.target.add(move)
-    controls.update()
-  }, undefined, [controls])
+    try {
+      if (!controls) return
+      if (!keys.current.w && !keys.current.a && !keys.current.s && !keys.current.d) return
+      const speed = (keys.current.shift ? 60 : 20) * delta
+      const forward = _forward.current
+      camera.getWorldDirection(forward)
+      forward.y = 0
+      forward.normalize()
+      const right = _right.current
+      right.crossVectors(forward, _up.current).normalize()
+      const move = _move.current.set(0, 0, 0)
+      if (keys.current.w) move.add(forward)
+      if (keys.current.s) move.sub(forward)
+      if (keys.current.a) move.sub(right)
+      if (keys.current.d) move.add(right)
+      if (move.length() === 0) return
+      move.normalize().multiplyScalar(speed)
+      camera.position.add(move)
+      controls.target.add(move)
+      controls.update()
+    } catch (e) { console.warn('[useFrame WASDControls]', e) }
+  })
 
   return null
 }
@@ -747,16 +774,19 @@ function FloatingParticles({ bounds }) {
   }, [bounds, particleCount])
 
   useFrame((state) => {
-    const end = perf.time('FloatingParticles')
-    if (!ref.current) { end(); return }
-    const t = state.clock.getElapsedTime()
-    const pos = ref.current.geometry.attributes.position.array
-    for (let i = 0; i < particleCount; i++) {
-      pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.002
-    }
-    ref.current.geometry.attributes.position.needsUpdate = true
-    end()
-  }, undefined, [speeds, particleCount])
+    try {
+      const end = perf.time('FloatingParticles')
+      if (!ref.current) { end(); return }
+      if (!ref.current.geometry?.attributes?.position?.array) { end(); return }
+      const t = state.clock.getElapsedTime()
+      const pos = ref.current.geometry.attributes.position.array
+      for (let i = 0; i < particleCount; i++) {
+        pos[i * 3 + 1] += Math.sin(t * speeds[i] + i) * 0.002
+      }
+      ref.current.geometry.attributes.position.needsUpdate = true
+      end()
+    } catch (e) { console.warn('[useFrame FloatingParticles]', e) }
+  })
 
   return (
     <points ref={ref} renderOrder={-10000}>
@@ -772,16 +802,18 @@ function CameraMetrics() {
   const setCameraPos = useTimelineStore((s) => s.setCameraPos)
   const lastUpdate = useRef(0)
   useFrame(({ camera }) => {
-    const now = performance.now()
-    if (now - lastUpdate.current > 200) {
-      lastUpdate.current = now
-      setCameraPos({
-        x: Math.round(camera.position.x),
-        y: Math.round(camera.position.y),
-        z: Math.round(camera.position.z),
-      })
-    }
-  }, undefined, [setCameraPos])
+    try {
+      const now = performance.now()
+      if (now - lastUpdate.current > 200) {
+        lastUpdate.current = now
+        setCameraPos({
+          x: Math.round(camera.position.x),
+          y: Math.round(camera.position.y),
+          z: Math.round(camera.position.z),
+        })
+      }
+    } catch (e) { console.warn('[useFrame CameraMetrics]', e) }
+  })
   return null
 }
 
@@ -825,11 +857,12 @@ function RenderGuard() {
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   
   useFrame(() => {
-    // When bloom is disabled, ensure autoClear is true to prevent trails
-    if (!bloomEnabled) {
-      gl.autoClear = true
-    }
-  }, undefined, [bloomEnabled])
+    try {
+      if (!bloomEnabled) {
+        gl.autoClear = true
+      }
+    } catch (e) { console.warn('[useFrame RenderGuard]', e) }
+  })
   
   return null
 }
@@ -838,7 +871,9 @@ function PerfMonitor() {
   const { gl } = useThree()
   useEffect(() => { perf.logWebGLInfo(gl) }, [gl])
   useFrame((_, delta) => {
-    perf.detectStutter(delta * 1000)
+    try {
+      perf.detectStutter(delta * 1000)
+    } catch (e) { console.warn('[useFrame PerfMonitor]', e) }
   })
   return null
 }

@@ -86,17 +86,20 @@ function TimelineLines({ demons }) {
   }, [curve])
 
   useFrame((state) => {
-    if (!partRef.current || !curve) return
-    const time = state.clock.getElapsedTime() * 0.3
-    const pos = partRef.current.geometry.attributes.position.array
-    for (let i = 0; i < pCount; i++) {
-      const t = ((i / pCount) + time) % 1
-      curve.getPoint(t, _tlPoint)
-      pos[i * 3] = _tlPoint.x
-      pos[i * 3 + 1] = _tlPoint.y
-      pos[i * 3 + 2] = _tlPoint.z
-    }
-    partRef.current.geometry.attributes.position.needsUpdate = true
+    try {
+      if (!partRef.current || !curve) return
+      if (!partRef.current.geometry?.attributes?.position?.array) return
+      const time = state.clock.getElapsedTime() * 0.3
+      const pos = partRef.current.geometry.attributes.position.array
+      for (let i = 0; i < pCount; i++) {
+        const t = ((i / pCount) + time) % 1
+        curve.getPoint(t, _tlPoint)
+        pos[i * 3] = _tlPoint.x
+        pos[i * 3 + 1] = _tlPoint.y
+        pos[i * 3 + 2] = _tlPoint.z
+      }
+      partRef.current.geometry.attributes.position.needsUpdate = true
+    } catch (e) { console.warn('[useFrame TimelineLines]', e) }
   })
 
   if (!curve || demons.length < 2) return null

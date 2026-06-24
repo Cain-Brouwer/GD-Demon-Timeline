@@ -85,41 +85,43 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
   const nameBaseScale = useMemo(() => new THREE.Vector3(nameAspect * 1.5, 1.5, 1), [nameAspect])
 
   useFrame((state, delta) => {
-    const end = perf.time('DemonSphere')
-    const t = state.clock.getElapsedTime()
-    vec3.current.set(x, 0, z)
-    const dist = camera.position.distanceTo(vec3.current)
+    try {
+      const end = perf.time('DemonSphere')
+      const t = state.clock.getElapsedTime()
+      vec3.current.set(x, 0, z)
+      const dist = camera.position.distanceTo(vec3.current)
 
-    const screenScale = Math.max(0.3, dist / 50)
-    const floatY = Math.sin(t * 0.8 + x) * 0.3
-    
-    if (spriteRef.current) {
-      spriteRef.current.position.y = floatY
-    }
-    if (glowRef.current && showGlow) {
-      glowRef.current.position.y = floatY
-    }
-    if (spriteRef.current) {
-      scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
-      const s = scaleRef.current * screenScale
-      spriteRef.current.scale.setScalar(s)
-      if (glowRef.current && showGlow) {
-        glowRef.current.scale.setScalar(s * 1.25)
+      const screenScale = Math.max(0.3, dist / 50)
+      const floatY = Math.sin(t * 0.8 + x) * 0.3
+      
+      if (spriteRef.current) {
+        spriteRef.current.position.y = floatY
       }
-    }
-    if (nameRef.current && showLabel) {
-      nameRef.current.position.y = floatY + 2.8 * screenScale
-      nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
-      nameRef.current.visible = dist < 50
-    }
-    if (ringRef.current && showRing) {
-      ringRef.current.rotation.z += 0.008
-      ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
-      const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
-      ringRef.current.scale.setScalar(s)
-      ringRef.current.visible = dist < 120
-    }
-    end()
+      if (glowRef.current && showGlow) {
+        glowRef.current.position.y = floatY
+      }
+      if (spriteRef.current) {
+        scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
+        const s = scaleRef.current * screenScale
+        spriteRef.current.scale.setScalar(s)
+        if (glowRef.current && showGlow) {
+          glowRef.current.scale.setScalar(s * 1.25)
+        }
+      }
+      if (nameRef.current && showLabel) {
+        nameRef.current.position.y = floatY + 2.8 * screenScale
+        nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
+        nameRef.current.visible = dist < 50
+      }
+      if (ringRef.current && showRing) {
+        ringRef.current.rotation.z += 0.008
+        ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
+        const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
+        ringRef.current.scale.setScalar(s)
+        ringRef.current.visible = dist < 120
+      }
+      end()
+    } catch (e) { console.warn('[useFrame DemonSphere]', e) }
   })
 
   const handleClick = (e) => {

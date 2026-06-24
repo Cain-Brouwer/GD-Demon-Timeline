@@ -14,6 +14,16 @@ const TimelineScene = lazy(() => import('./components/TimelineScene'))
 
 const APP_KEY = import.meta.env.VITE_APP_KEY
 
+// Global error handler to capture the RAF loop error
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (e) => {
+    console.warn('[global error]', e.message, e.filename, e.lineno, e.colno)
+  })
+  window.addEventListener('unhandledrejection', (e) => {
+    console.warn('[unhandled rejection]', e.reason)
+  })
+}
+
 function App() {
   const [showLanding, setShowLanding] = useState(true)
   const initDemons = useTimelineStore((s) => s.initDemons)
