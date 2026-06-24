@@ -9,6 +9,7 @@ import { perf } from '../lib/perfDebug'
 import EditDemonModal from './EditDemonModal'
 import DemonSphere, { ICON_MAP } from './DemonSphere'
 import RenderDebugger from './RenderDebugger'
+import StutterDebugger from './StutterDebugger'
 import TimelineLines from './TimelineLines'
 
 function getYouTubeId(url) {
@@ -859,17 +860,6 @@ function EffectComposerWrapper() {
   )
 }
 
-function PerfMonitor() {
-  const { gl } = useThree()
-  useEffect(() => { perf.logWebGLInfo(gl) }, [gl])
-  useFrame((_, delta) => {
-    try {
-      perf.detectStutter(delta * 1000)
-    } catch (e) { console.warn('[useFrame PerfMonitor]', e) }
-  })
-  return null
-}
-
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
@@ -896,7 +886,7 @@ function SceneContent() {
   return (
     <>
       <EffectComposerWrapper />
-      <PerfMonitor />
+      <StutterDebugger />
       
       <CameraMetrics />
       <RenderDebugger />
