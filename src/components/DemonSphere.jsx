@@ -129,13 +129,17 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
     selectDemon(demon)
   }
 
+  const LAYER_GLOW = 0
+  const LAYER_ICON = 1
+  const LAYER_NAME = 2
+  const LAYER_RING = 3
+
   const colorObj = useMemo(() => new THREE.Color(diffColor), [diffColor])
-  const rOrder = demon.id * 4
 
   return (
     <group position={[x, 0, z]}>
       {showRing && (
-        <mesh ref={ringRef} renderOrder={rOrder + 3}>
+        <mesh ref={ringRef} renderOrder={LAYER_RING}>
           <torusGeometry args={[1.4, 0.04, 8, 16]} />
           <meshBasicMaterial
             color={isFuture ? '#555555' : diffColor}
@@ -149,7 +153,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       {showGlow && (
         <sprite
           ref={glowRef}
-          renderOrder={rOrder}
+          renderOrder={LAYER_GLOW}
           frustumCulled={false}
           scale={[2.5, 2.5, 1]}
           onPointerOver={() => setHovered(true)}
@@ -168,7 +172,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
 
       <sprite
         ref={spriteRef}
-        renderOrder={rOrder + 1}
+        renderOrder={LAYER_ICON}
         frustumCulled={false}
         scale={[2, 2, 1]}
         onPointerOver={() => setHovered(true)}
@@ -180,12 +184,11 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
           transparent
           opacity={isFuture ? 0.35 : 1}
           depthWrite={false}
-          depthTest={false}
         />
       </sprite>
 
       {showLabel && (
-        <sprite ref={nameRef} renderOrder={rOrder + 2} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
+        <sprite ref={nameRef} renderOrder={LAYER_NAME} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
           <spriteMaterial
             map={nameTexture}
             transparent
