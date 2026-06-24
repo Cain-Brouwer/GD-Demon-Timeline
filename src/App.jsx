@@ -3,6 +3,7 @@ import UIOverlay from './components/UIOverlay'
 import YouTubeModal from './components/YouTubeModal'
 import YouTubeMiniPlayer from './components/YouTubeMiniPlayer'
 import LandingPage from './components/LandingPage'
+import DeviceWarning from './components/DeviceWarning'
 import { useTimelineStore } from './store/timelineStore'
 import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
@@ -37,6 +38,7 @@ function App() {
   const clearSelection = useTimelineStore((s) => s.clearSelection)
   const clearYoutubeVideo = useTimelineStore((s) => s.clearYoutubeVideo)
   const youtubeVideoId = useTimelineStore((s) => s.youtubeVideoId)
+  const performanceTested = useTimelineStore((s) => s.performanceTested)
   const syncedRef = useRef(false)
 
   const handleKeyDown = useCallback((e) => {
@@ -162,6 +164,7 @@ function App() {
       <UIOverlay config={config} />
       <YouTubeModal />
       <YouTubeMiniPlayer key={youtubeVideoId || 'none'} />
+      {!performanceTested && <DeviceWarning onClose={() => {}} />}
     </div>
   )
 }

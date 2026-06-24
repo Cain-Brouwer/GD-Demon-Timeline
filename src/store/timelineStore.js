@@ -72,6 +72,39 @@ export const useTimelineStore = create(
         set({ cameraPos: pos })
       },
 
+      qualityMode: 'normal',
+      setQualityMode: (mode) => set({ qualityMode: mode }),
+      performanceTested: false,
+      setPerformanceTested: (v) => set({ performanceTested: v }),
+      runPerformanceTest: () => {
+        const samples = []
+        return new Promise((resolve) => {
+          let running = true
+          let last = performance.now()
+          const measure = () => {
+            if (!running) return
+            const now = performance.now()
+            const delta = now - last
+            last = now
+            if (delta > 0) samples.push(1000 / delta)
+            if (samples.length >= 90) {
+              running = false
+              samples.sort((a, b) => a - b)
+              const avg = samples.reduce((a, b) => a + b, 0) / samples.length
+              const p10 = samples[Math.floor(samples.length * 0.1)]
+              let mode = 'low'
+              if (avg >= 55 && p10 >= 45) mode = 'normal'
+              else if (avg >= 30) mode = 'low'
+              set({ qualityMode: mode, performanceTested: true })
+              resolve(mode)
+              return
+            }
+            requestAnimationFrame(measure)
+          }
+          requestAnimationFrame(measure)
+        })
+      },
+
       renderSettings: {
         starfield: true,
         nebula: true,
@@ -204,6 +237,8 @@ export const useTimelineStore = create(
       partialize: (state) => ({
         demons: state.demons,
         renderSettings: state.renderSettings,
+        qualityMode: state.qualityMode,
+        performanceTested: state.performanceTested,
       }),
     }
   )

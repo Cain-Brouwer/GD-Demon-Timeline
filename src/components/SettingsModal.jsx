@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTimelineStore } from '../store/timelineStore'
 
 const SETTINGS = [
@@ -14,6 +15,16 @@ const SETTINGS = [
 function SettingsModal({ onClose }) {
   const renderSettings = useTimelineStore((s) => s.renderSettings)
   const setRenderSetting = useTimelineStore((s) => s.setRenderSetting)
+  const qualityMode = useTimelineStore((s) => s.qualityMode)
+  const setQualityMode = useTimelineStore((s) => s.setQualityMode)
+  const runPerformanceTest = useTimelineStore((s) => s.runPerformanceTest)
+  const [testing, setTesting] = useState(false)
+
+  const handleTest = async () => {
+    setTesting(true)
+    await runPerformanceTest()
+    setTesting(false)
+  }
 
   return (
     <div
@@ -37,7 +48,64 @@ function SettingsModal({ onClose }) {
         }}
       >
         <div style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>
-          ⚙️ Render Settings
+          ⚙️ Settings
+        </div>
+
+        <div style={{ marginBottom: 16, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>Quality Mode</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['low', 'normal'].map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setQualityMode(mode)}
+                style={{
+                  flex: 1,
+                  background: qualityMode === mode ? '#c084fc' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${qualityMode === mode ? '#c084fc' : 'rgba(255,255,255,0.2)'}`,
+                  color: 'white',
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                  fontWeight: qualityMode === mode ? 'bold' : 'normal',
+                }}
+              >
+                {mode === 'low' ? 'Low' : 'Normal'}
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4 }}>
+            Low: reduced particles, lighter bloom. Normal: full quality.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>Performance Test</div>
+          <button
+            onClick={handleTest}
+            disabled={testing}
+            style={{
+              background: testing ? 'rgba(192,132,252,0.2)' : 'rgba(192,132,252,0.15)',
+              border: '1px solid #c084fc',
+              color: 'white',
+              padding: '6px 16px',
+              borderRadius: 6,
+              fontSize: 11,
+              fontFamily: 'monospace',
+              cursor: testing ? 'default' : 'pointer',
+              opacity: testing ? 0.5 : 1,
+            }}
+          >
+            {testing ? 'Measuring...' : qualityMode === 'low' ? '⚠ Low — Retest' : '✅ Normal — Retest'}
+          </button>
+          <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4 }}>
+            Measures FPS over 3 seconds and adjusts quality automatically.
+          </div>
+        </div>
+
+        <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8, opacity: 0.6 }}>
+          Render Toggles
         </div>
 
         {SETTINGS.map(({ key, label, desc }) => (

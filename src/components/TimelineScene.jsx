@@ -238,17 +238,17 @@ function CameraAnimator() {
   return null
 }
 
-function Starfield({ bounds }) {
+function Starfield({ bounds, qualityMode }) {
   const starsRef = useRef()
   
-  // Dynamically determine star count based on device
   const starCount = useMemo(() => {
     const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
-    const isHighRes = pixelCount > 2073600 // > 1440p
+    const isHighRes = pixelCount > 2073600
     const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
+    if (qualityMode === 'low') return 400
     if (isMobile || isHighRes) return 800
     return 1500
-  }, [])
+  }, [qualityMode])
   
   const { positions, colors, sizes } = useMemo(() => {
     const count = starCount
@@ -300,17 +300,17 @@ function Starfield({ bounds }) {
   )
 }
 
-function Nebula({ bounds }) {
+function Nebula({ bounds, qualityMode }) {
   
-  // Dynamically determine nebula count based on device
   const nebulaCount = useMemo(() => {
     const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
-    const isHighRes = pixelCount > 2073600 // > 1440p
+    const isHighRes = pixelCount > 2073600
     const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
+    if (qualityMode === 'low') return 15
     if (isMobile) return 25
     if (isHighRes) return 30
     return 45
-  }, [])
+  }, [qualityMode])
   
   const pointsRef = useRef()
   const baseData = useRef([])
@@ -757,18 +757,18 @@ function WASDControls() {
   return null
 }
 
-function FloatingParticles({ bounds }) {
+function FloatingParticles({ bounds, qualityMode }) {
   const ref = useRef()
   
-  // Dynamically determine particle count
   const particleCount = useMemo(() => {
     const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
     const isHighRes = pixelCount > 2073600
     const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
+    if (qualityMode === 'low') return 100
     if (isMobile) return 150
     if (isHighRes) return 200
     return 300
-  }, [])
+  }, [qualityMode])
   
   const [positions, speeds] = useMemo(() => {
     const pos = new Float32Array(particleCount * 3)
@@ -838,23 +838,23 @@ function CameraMetrics() {
 
 function EffectComposerWrapper() {
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
+  const qualityMode = useTimelineStore((s) => s.qualityMode)
   const { size } = useThree()
   
-  // Optimize bloom based on screen resolution
   const bloomConfig = useMemo(() => {
     const pixelCount = size.width * size.height
-    
-    // On high-res displays, reduce blur quality
-    const isHighRes = pixelCount > 2073600 // > 1440p
+    const isHighRes = pixelCount > 2073600
+    const isLow = qualityMode === 'low'
     
     return {
       luminanceThreshold: isHighRes ? 0.2 : 0.15,
       luminanceSmoothing: 0.9,
-      intensity: 0.5,
+      intensity: isLow ? 0.3 : 0.5,
       mipmapBlur: !isHighRes,
-      blur: isHighRes ? 4 : 6,
+      blur: isLow ? 3 : (isHighRes ? 4 : 6),
+      resolutionScale: isLow ? 0.5 : 1,
     }
-  }, [size])
+  }, [size, qualityMode])
   
   if (!bloomEnabled) return null
   
@@ -882,6 +882,7 @@ function SceneContent() {
   const showDemonGlow = useTimelineStore((s) => s.renderSettings.demonGlow)
   const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
   const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
+  const qualityMode = useTimelineStore((s) => s.qualityMode)
   const textures = useTexture(ICON_MAP)
 
   const timelineBounds = useMemo(() => {
@@ -910,9 +911,9 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      {showNebula && <Nebula bounds={timelineBounds} />}
-      {showStarfield && <Starfield bounds={timelineBounds} />}
-      {showParticles && <FloatingParticles bounds={timelineBounds} />}
+      {showNebula && <Nebula bounds={timelineBounds} qualityMode={qualityMode} />}
+      {showStarfield && <Starfield bounds={timelineBounds} qualityMode={qualityMode} />}
+      {showParticles && <FloatingParticles bounds={timelineBounds} qualityMode={qualityMode} />}
       {showShootingStars && <ShootingStars bounds={timelineBounds} />}
       {showBlackHole && <BlackHole />}
       <CameraAnimator />
