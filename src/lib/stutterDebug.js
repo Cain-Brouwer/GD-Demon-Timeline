@@ -3,13 +3,13 @@
  *
  * Always-on (negligible overhead):
  *   - Ring buffer of 1200 frame deltas (20s @ 60fps)
- *   - Floating status button (right side)
  *
- * Recording (explicit toggle):
+ * Recording (explicit toggle via UIOverlay):
  *   - Captures detailed stutter events when delta > 50ms
  *   - Includes camera position, GPU stats, recent frame context
  *
- * Download: click the button or press Alt+Shift+S
+ * UI controls are rendered in UIOverlay.jsx bottom bar.
+ * Keyboard: Alt+Shift+S to download dump.
  */
 
 const MAX_FRAMES = 1200
@@ -164,110 +164,7 @@ export function downloadDump() {
   )
 }
 
-/* ---- DOM button (managed by StutterDebugger useEffect) ---- */
-
-let statusEl = null
-let containerEl = null
-let dlBtn, recBtn
-let updateTimer = null
-
-function updateButton() {
-  if (!containerEl) return
-  const s = getStats()
-  if (s.recording) {
-    const dur = s.duration > 60 ? `${Math.floor(s.duration / 60)}m ${s.duration % 60}s` : `${s.duration}s`
-    statusEl.textContent = `⏹ ${dur} · ${s.stutterCount} stutters`
-    containerEl.style.border = '1px solid #ff4444'
-  } else {
-    statusEl.textContent = `Stutters: ${s.stutterCount}`
-    containerEl.style.border = '1px solid rgba(255,255,255,0.12)'
-  }
-  void dlBtn
-  void recBtn
-}
-
-export function mountButton() {
-  if (containerEl || typeof window === 'undefined') return
-
-  const container = document.createElement('div')
-  container.id = 'stutter-debug-btn'
-  Object.assign(container.style, {
-    position: 'fixed',
-    bottom: 80,
-    right: 10,
-    zIndex: 99999,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.6)',
-    cursor: 'default',
-    fontFamily: 'monospace',
-    padding: '4px 8px',
-    borderRadius: 4,
-    background: 'rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    userSelect: 'none',
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
-  })
-
-  statusEl = document.createElement('span')
-  statusEl.textContent = 'Stutters: 0'
-  container.appendChild(statusEl)
-
-  recBtn = document.createElement('span')
-  recBtn.textContent = '⏺ Rec'
-  recBtn.style.cssText = 'padding:0 4px;color:#ff6666;font-weight:bold;cursor:pointer'
-  recBtn.title = 'Toggle stutter recording'
-  container.appendChild(recBtn)
-
-  dlBtn = document.createElement('span')
-  dlBtn.textContent = '⬇ dl'
-  dlBtn.style.cssText = 'padding:0 4px;opacity:0.7;cursor:pointer'
-  dlBtn.title = 'Download stutter debug dump'
-  container.appendChild(dlBtn)
-
-  recBtn.addEventListener('click', (e) => {
-    e.stopPropagation()
-    if (recording) {
-      stopRecording()
-      recBtn.textContent = '⏺ Rec'
-      recBtn.style.color = '#ff6666'
-    } else {
-      startRecording()
-      recBtn.textContent = '⏹ Stop'
-      recBtn.style.color = '#ff4444'
-    }
-    updateButton()
-  })
-
-  dlBtn.addEventListener('click', (e) => {
-    e.stopPropagation()
-    downloadDump()
-  })
-
-  containerEl = container
-  document.body.appendChild(container)
-  updateTimer = setInterval(() => updateButton(), 500)
-
-  try { if (localStorage.getItem(RECORD_STORAGE_KEY) === '1') { recording = true; startTime = performance.now() } }
-  catch { /* private browsing */ }
-}
-
-export function unmountButton() {
-  if (containerEl) {
-    containerEl.remove()
-    containerEl = null
-    statusEl = null
-    recBtn = null
-    dlBtn = null
-  }
-  if (updateTimer) {
-    clearInterval(updateTimer)
-    updateTimer = null
-  }
-}
-
-/* Keyboard shortcut + global exposure (module side-effect, always runs) */
+/* Keyboard shortcut + global exposure */
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (e) => {
     if (e.altKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
@@ -277,4 +174,6 @@ if (typeof window !== 'undefined') {
   })
 
   window.__stutterDebug = { getStats, startRecording, stopRecording, downloadDump }
+  try { if (localStorage.getItem(RECORD_STORAGE_KEY) === '1') { recording = true; startTime = performance.now() } }
+  catch { /* private browsing */ }
 }

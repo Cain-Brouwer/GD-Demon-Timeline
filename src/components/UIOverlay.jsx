@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTimelineStore } from '../store/timelineStore'
 import { perf } from '../lib/perfDebug'
+import { getStats, startRecording, stopRecording, downloadDump } from '../lib/stutterDebug'
 import AddDemonModal from './AddDemonModal'
 import DocsModal from './DocsModal'
 import AuthModal from './AuthModal'
@@ -102,6 +103,14 @@ function UIOverlay({ config }) {
   const setBloomEnabled = useTimelineStore((s) => s.setBloomEnabled)
   const searchRef = useRef(null)
   const [flash, setFlash] = useState(false)
+  const [stutterStats, setStutterStats] = useState({ stutterCount: 0, recording: false, duration: 0 })
+
+  useEffect(() => {
+    const tick = () => setStutterStats(getStats())
+    tick()
+    const id = setInterval(tick, 500)
+    return () => clearInterval(id)
+  }, [])
 
   const takeScreenshot = () => {
     import('html2canvas').then(({ default: html2canvas }) => {
@@ -835,6 +844,38 @@ function UIOverlay({ config }) {
             }}
           >
             dump
+          </span>
+          <span style={{ marginLeft: isMobile ? 8 : 12, opacity: 0.5 }}>
+            {stutterStats.recording
+              ? `⏹ ${stutterStats.duration > 60 ? `${Math.floor(stutterStats.duration / 60)}m` : `${stutterStats.duration}s`} · ${stutterStats.stutterCount}s`
+              : `s:${stutterStats.stutterCount}`}
+          </span>
+          <span
+            onClick={() => {
+              if (stutterStats.recording) { stopRecording(); setStutterStats(getStats()) }
+              else { startRecording(); setStutterStats(getStats()) }
+            }}
+            style={{
+              marginLeft: 4,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: stutterStats.recording ? '#ff4444' : 'rgba(255,255,255,0.4)',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            {stutterStats.recording ? '⏹ rec' : '⏺ rec'}
+          </span>
+          <span
+            onClick={() => downloadDump()}
+            style={{
+              marginLeft: 4,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.4)',
+              padding: isMobile ? '4px 2px' : 0,
+            }}
+          >
+            ⬇sd
           </span>
       </div>
     </>,

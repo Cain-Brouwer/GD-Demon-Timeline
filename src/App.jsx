@@ -4,7 +4,6 @@ import YouTubeModal from './components/YouTubeModal'
 import YouTubeMiniPlayer from './components/YouTubeMiniPlayer'
 import LandingPage from './components/LandingPage'
 import { useTimelineStore } from './store/timelineStore'
-import { mountButton, unmountButton } from './lib/stutterDebug'
 import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
 import config from './timeline.config'
@@ -102,11 +101,6 @@ function App() {
     })
     return () => subscription.unsubscribe()
   }, [setUser])
-
-  useEffect(() => {
-    mountButton()
-    return () => unmountButton()
-  }, [])
 
   useEffect(() => {
     if (!user) {
