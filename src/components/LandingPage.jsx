@@ -179,9 +179,9 @@ function LandingPage({ onEnter }) {
               textShadow: '0 0 40px rgba(207,188,255,0.3), 0 0 80px rgba(207,188,255,0.1)',
             }}
           >
-            NEON
+            GD DEMON
             <br />
-            CHRONOMETRY
+            TIMELINE
           </div>
           <div
             style={{

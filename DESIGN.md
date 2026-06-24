@@ -1,5 +1,5 @@
 ---
-name: Neon Chronometry
+name: GD Demon Timeline
 colors:
   surface: '#141218'
   surface-dim: '#141218'
@@ -111,8 +111,6 @@ spacing:
 ---
 
 ## Brand & Style
-
-The design system is engineered for high-intensity immersion, mirroring the rhythmic precision and spatial challenge of high-level rhythmic platforming. The personality is **aggressive, futuristic, and precise**, aimed at power users who demand high data density with a gaming aesthetic.
 
 The visual style is a fusion of **Glassmorphism** and **Cyber-Brutalism**. It utilizes deep charcoal voids to create an infinite canvas, where information is stratified through translucent, frosted layers and illuminated by vibrant neon strokes. High-contrast typography ensures readability against complex background effects, while thin, glowing borders provide structural definition without bulk.
 
