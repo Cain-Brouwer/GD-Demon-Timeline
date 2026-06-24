@@ -929,9 +929,11 @@ function TimelineScene() {
   return (
     <Canvas
       camera={{ position: [0, 30, 50], fov: 50 }}
+      dpr={typeof window !== 'undefined' ? window.devicePixelRatio : 1}
+      frameloop="always"
       style={{ background: '#0a0015', width: '100%', height: '100%', contain: 'strict', willChange: 'transform' }}
       onPointerMissed={clearSelection}
-      gl={{ preserveDrawingBuffer: debugEnabled, powerPreference: 'high-performance' }}
+      gl={{ preserveDrawingBuffer: debugEnabled, powerPreference: 'high-performance', antialias: true }}
     >
       <SceneContent />
     </Canvas>
