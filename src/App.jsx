@@ -7,6 +7,7 @@ import { useTimelineStore } from './store/timelineStore'
 import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
 import config from './timeline.config'
+import LoadingScreen from './components/LoadingScreen'
 import './App.css'
 
 const TimelineScene = lazy(() => import('./components/TimelineScene'))
@@ -146,7 +147,7 @@ function App() {
 
   return (
     <div className="app">
-      <Suspense fallback={<div style={{ position:'fixed', inset:0, background:'#0a0015' }} />}>
+      <Suspense fallback={<LoadingScreen />}>
         <TimelineScene />
       </Suspense>
       <UIOverlay config={config} />
