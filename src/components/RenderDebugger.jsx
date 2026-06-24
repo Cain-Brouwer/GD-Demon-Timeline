@@ -5,13 +5,11 @@ import { startCollector, stopCollector, takeSnapshot } from '../lib/renderDebug'
 
 function RenderDebugger() {
   const { gl, camera, scene } = useThree()
-
-  console.log('[RD] mounted', { hasGl: !!gl, hasCam: !!camera, hasScene: !!scene })
+  const enabledRef = useRef(typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'))
 
   useEffect(() => {
-    console.log('[RD] effect running', { hasGl: !!gl, hasCam: !!camera, hasScene: !!scene })
+    if (!enabledRef.current) return
     if (!gl || !camera || !scene) {
-      console.warn('[RD] cannot start — missing three objects')
       return
     }
 
@@ -29,12 +27,9 @@ function RenderDebugger() {
 
     setTimeout(() => {
       const st = useTimelineStore.getState()
-      console.log('[RD] first snapshot attempt', { demonCount: st.demons?.length })
       takeSnapshot(camera, gl, st.demons, st.renderSettings, scene)
-      console.log('[renderDebug] Active — Ctrl+Shift+D to download dump')
     }, 1500)
 
-    console.log('[RD] starting collector')
     startCollector(getState, gl, camera, scene)
 
     const animLoop = () => {
@@ -44,13 +39,13 @@ function RenderDebugger() {
     const raf = requestAnimationFrame(animLoop)
 
     return () => {
-      console.log('[RD] cleanup')
       stopCollector()
       clearInterval(fpsInterval)
       cancelAnimationFrame(raf)
     }
   }, [gl, camera, scene])
 
+  if (!enabledRef.current) return null
   return null
 }
 

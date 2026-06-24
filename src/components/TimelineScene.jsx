@@ -923,13 +923,17 @@ function SceneContent() {
 
 function TimelineScene() {
   const clearSelection = useTimelineStore((s) => s.clearSelection)
+  const debugEnabled = useMemo(
+    () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'),
+    []
+  )
 
   return (
     <Canvas
       camera={{ position: [0, 30, 50], fov: 50 }}
       style={{ background: '#0a0015' }}
       onPointerMissed={clearSelection}
-      gl={{ preserveDrawingBuffer: true }}
+      gl={{ preserveDrawingBuffer: debugEnabled }}
     >
       <SceneContent />
     </Canvas>
