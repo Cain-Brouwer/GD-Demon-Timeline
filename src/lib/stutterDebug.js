@@ -164,11 +164,12 @@ export function downloadDump() {
   )
 }
 
-/* ---- DOM button (always visible) ---- */
+/* ---- DOM button (managed by StutterDebugger useEffect) ---- */
 
 let statusEl = null
 let containerEl = null
 let dlBtn, recBtn
+let updateTimer = null
 
 function updateButton() {
   if (!containerEl) return
@@ -185,75 +186,89 @@ function updateButton() {
   void recBtn
 }
 
-if (typeof window !== 'undefined') {
-  if (!document.getElementById('stutter-debug-btn')) {
-    const container = document.createElement('div')
-    container.id = 'stutter-debug-btn'
-    Object.assign(container.style, {
-      position: 'fixed',
-      bottom: 80,
-      right: 10,
-      zIndex: 99999,
-      fontSize: 11,
-      color: 'rgba(255,255,255,0.6)',
-      cursor: 'default',
-      fontFamily: 'monospace',
-      padding: '4px 8px',
-      borderRadius: 4,
-      background: 'rgba(0,0,0,0.5)',
-      border: '1px solid rgba(255,255,255,0.12)',
-      userSelect: 'none',
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center',
-    })
+export function mountButton() {
+  if (containerEl || typeof window === 'undefined') return
 
-    statusEl = document.createElement('span')
-    statusEl.textContent = 'Stutters: 0'
-    container.appendChild(statusEl)
+  const container = document.createElement('div')
+  container.id = 'stutter-debug-btn'
+  Object.assign(container.style, {
+    position: 'fixed',
+    bottom: 80,
+    right: 10,
+    zIndex: 99999,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.6)',
+    cursor: 'default',
+    fontFamily: 'monospace',
+    padding: '4px 8px',
+    borderRadius: 4,
+    background: 'rgba(0,0,0,0.5)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    userSelect: 'none',
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  })
 
-    recBtn = document.createElement('span')
-    recBtn.textContent = '⏺ Rec'
-    recBtn.style.cssText = 'padding:0 4px;color:#ff6666;font-weight:bold;cursor:pointer'
-    recBtn.title = 'Toggle stutter recording'
-    container.appendChild(recBtn)
+  statusEl = document.createElement('span')
+  statusEl.textContent = 'Stutters: 0'
+  container.appendChild(statusEl)
 
-    dlBtn = document.createElement('span')
-    dlBtn.textContent = '⬇ dl'
-    dlBtn.style.cssText = 'padding:0 4px;opacity:0.7;cursor:pointer'
-    dlBtn.title = 'Download stutter debug dump'
-    container.appendChild(dlBtn)
+  recBtn = document.createElement('span')
+  recBtn.textContent = '⏺ Rec'
+  recBtn.style.cssText = 'padding:0 4px;color:#ff6666;font-weight:bold;cursor:pointer'
+  recBtn.title = 'Toggle stutter recording'
+  container.appendChild(recBtn)
 
-    recBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      if (recording) {
-        stopRecording()
-        recBtn.textContent = '⏺ Rec'
-        recBtn.style.color = '#ff6666'
-      } else {
-        startRecording()
-        recBtn.textContent = '⏹ Stop'
-        recBtn.style.color = '#ff4444'
-      }
-      updateButton()
-    })
+  dlBtn = document.createElement('span')
+  dlBtn.textContent = '⬇ dl'
+  dlBtn.style.cssText = 'padding:0 4px;opacity:0.7;cursor:pointer'
+  dlBtn.title = 'Download stutter debug dump'
+  container.appendChild(dlBtn)
 
-    dlBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      downloadDump()
-    })
-
-    containerEl = container
-
-    if (document.body) {
-      document.body.appendChild(container)
+  recBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    if (recording) {
+      stopRecording()
+      recBtn.textContent = '⏺ Rec'
+      recBtn.style.color = '#ff6666'
     } else {
-      document.addEventListener('DOMContentLoaded', () => document.body.appendChild(container))
+      startRecording()
+      recBtn.textContent = '⏹ Stop'
+      recBtn.style.color = '#ff4444'
     }
+    updateButton()
+  })
 
-    setInterval(() => updateButton(), 500)
+  dlBtn.addEventListener('click', (e) => {
+    e.stopPropagation()
+    downloadDump()
+  })
+
+  containerEl = container
+  document.body.appendChild(container)
+  updateTimer = setInterval(() => updateButton(), 500)
+
+  try { if (localStorage.getItem(RECORD_STORAGE_KEY) === '1') { recording = true; startTime = performance.now() } }
+  catch { /* private browsing */ }
+}
+
+export function unmountButton() {
+  if (containerEl) {
+    containerEl.remove()
+    containerEl = null
+    statusEl = null
+    recBtn = null
+    dlBtn = null
   }
+  if (updateTimer) {
+    clearInterval(updateTimer)
+    updateTimer = null
+  }
+}
 
+/* Keyboard shortcut + global exposure (module side-effect, always runs) */
+if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (e) => {
     if (e.altKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
       e.preventDefault()
@@ -262,6 +277,4 @@ if (typeof window !== 'undefined') {
   })
 
   window.__stutterDebug = { getStats, startRecording, stopRecording, downloadDump }
-  try { if (localStorage.getItem(RECORD_STORAGE_KEY) === '1') { recording = true; startTime = performance.now() } }
-  catch { /* private browsing */ }
 }
