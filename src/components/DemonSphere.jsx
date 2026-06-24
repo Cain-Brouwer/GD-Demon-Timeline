@@ -92,20 +92,21 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       vec3.current.set(x, 0, z)
       const dist = camera.position.distanceTo(vec3.current)
       const safeDelta = Math.min(delta, 1 / 30)
-      const depthOrderBase = Math.round(-dist * 4) * 10
+      const distLevel = Math.round(-dist * 50)
+      const renderOrder = distLevel * 10000 + demon.id * 10
 
       const screenScale = Math.max(0.3, dist / 50)
       const floatY = Math.sin(t * 0.8 + x) * 0.3
       
       if (spriteRef.current) {
-        if (orderRef.current !== depthOrderBase) {
-          spriteRef.current.renderOrder = depthOrderBase + 2
+        if (orderRef.current !== renderOrder) {
+          spriteRef.current.renderOrder = renderOrder + 2
         }
         spriteRef.current.position.y = floatY
       }
       if (glowRef.current && showGlow) {
-        if (orderRef.current !== depthOrderBase) {
-          glowRef.current.renderOrder = depthOrderBase + 1
+        if (orderRef.current !== renderOrder) {
+          glowRef.current.renderOrder = renderOrder + 1
         }
         glowRef.current.position.y = floatY
       }
@@ -118,16 +119,16 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
         }
       }
       if (nameRef.current && showLabel) {
-        if (orderRef.current !== depthOrderBase) {
-          nameRef.current.renderOrder = depthOrderBase + 3
+        if (orderRef.current !== renderOrder) {
+          nameRef.current.renderOrder = renderOrder + 3
         }
         nameRef.current.position.y = floatY + 2.8 * screenScale
         nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
         nameRef.current.visible = dist < 50
       }
       if (ringRef.current && showRing) {
-        if (orderRef.current !== depthOrderBase) {
-          ringRef.current.renderOrder = depthOrderBase + 4
+        if (orderRef.current !== renderOrder) {
+          ringRef.current.renderOrder = renderOrder + 4
         }
         ringRef.current.rotation.z += 0.008 * (safeDelta / (1 / 60))
         ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
@@ -135,7 +136,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
         ringRef.current.scale.setScalar(s)
         ringRef.current.visible = dist < 120
       }
-      orderRef.current = depthOrderBase
+      orderRef.current = renderOrder
       end()
     } catch (e) { console.warn('[useFrame DemonSphere]', e) }
   })
