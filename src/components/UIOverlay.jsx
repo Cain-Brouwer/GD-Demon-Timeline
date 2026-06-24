@@ -845,10 +845,16 @@ function UIOverlay({ config }) {
           >
             dump
           </span>
-          <span style={{ marginLeft: isMobile ? 8 : 12, opacity: 0.5 }}>
+          <span
+            style={{
+              marginLeft: isMobile ? 8 : 12,
+              opacity: 0.5,
+              color: stutterStats.jitterScore > 90 ? 'rgba(255,255,255,0.5)' : stutterStats.jitterScore > 70 ? '#fbbf24' : '#ff4444',
+            }}
+          >
             {stutterStats.recording
-              ? `⏹ ${stutterStats.duration > 60 ? `${Math.floor(stutterStats.duration / 60)}m` : `${stutterStats.duration}s`} · ${stutterStats.stutterCount}s`
-              : `s:${stutterStats.stutterCount}`}
+              ? `⏹ ${stutterStats.duration > 60 ? `${Math.floor(stutterStats.duration / 60)}m` : `${stutterStats.duration}s`} · j:${stutterStats.jitterCount} s:${stutterStats.stutterCount}`
+              : `j:${stutterStats.jitterCount} s:${stutterStats.stutterCount + stutterStats.severeCount} ${stutterStats.jitterScore}%`}
           </span>
           <span
             onClick={() => {

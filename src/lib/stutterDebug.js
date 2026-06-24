@@ -1,32 +1,66 @@
 /**
  * Stutter Debug — continuously captures frame timing data and stutter events.
  *
+ * Detection tiers:
+ *   - JITTER (15ms): frame pacing jitter — irreguliere frame intervals
+ *   - STUTTER (30ms): merkbare framedrop (~33fps)
+ *   - SEVERE (50ms): zware framedrop (~20fps)
+ *
  * Always-on (negligible overhead):
- *   - Ring buffer of 1200 frame deltas (20s @ 60fps)
+ *   - Ring buffer van 1200 frame deltas (20s @ 60fps)
+ *   - Frame pacing jitter score (coefficient of variation, 0-100)
  *
  * Recording (explicit toggle via UIOverlay):
- *   - Captures detailed stutter events when delta > 50ms
- *   - Includes camera position, GPU stats, recent frame context
+ *   - Logt alle events met camera pos, GPU stats, recente deltas
  *
- * UI controls are rendered in UIOverlay.jsx bottom bar.
+ * UI controls worden gerenderd in UIOverlay.jsx bottom bar.
  * Keyboard: Alt+Shift+S to download dump.
  */
 
 const MAX_FRAMES = 1200
-const MAX_STUTTER_EVENTS = 100
-const STUTTER_THRESHOLD_MS = 50
-const STUTTER_WARMUP_FRAMES = 10
+const MAX_STUTTER_EVENTS = 200
+const WARMUP_FRAMES = 10
 const LS_KEY = 'stutter-debug-dump'
 const RECORD_STORAGE_KEY = 'stutter-debug-recording'
 
+/* Detection thresholds */
+const JITTER_MS = 15
+const STUTTER_MS = 30
+const SEVERE_MS = 50
+
+/* Jitter detection — rolling variance window */
+const JITTER_WINDOW = 10
+const JITTER_STDDEV_THRESHOLD = 5
+
+function stddev(arr, n, mean) {
+  let sumSq = 0
+  for (let i = 0; i < n; i++) {
+    const d = arr[i] - mean
+    sumSq += d * d
+  }
+  return Math.sqrt(sumSq / n)
+}
+
+/* Ring buffer state */
 const frameDeltas = new Float64Array(MAX_FRAMES)
 let frameIdx = 0
 let frameCount = 0
 let totalFrames = 0
 
+/* Jitter rolling window */
+const jitterWindow = new Float64Array(JITTER_WINDOW)
+let jitterWIdx = 0
+let jitterWCount = 0
+
+/* Event tracking */
 let stutterEvents = []
 let recording = false
 let startTime = 0
+
+/* Running counts (altijd, ook zonder recording) */
+let totalJitterEvents = 0
+let totalStutterEvents = 0
+let totalSevereEvents = 0
 
 function round(v, d) {
   if (d === undefined) d = 2
@@ -61,43 +95,94 @@ function computeStats() {
 
 export function getStats() {
   const s = computeStats()
+  const jMean = computeJitterMean()
+  const jSd = jMean > 0 ? computeJitterStddev(jMean) : 0
+  const jScore = jMean > 0 ? Math.max(0, Math.min(100, round(100 - (jSd / jMean) * 100, 1))) : 100
+
   return {
     totalFrames,
-    stutterCount: stutterEvents.length,
+    jitterCount: totalJitterEvents,
+    stutterCount: totalStutterEvents,
+    severeCount: totalSevereEvents,
+    jitterScore: jScore,
     recording,
     duration: startTime ? Math.round((performance.now() - startTime) / 1000) : 0,
     ...(s || { avgFps: 0, p50: 0, p95: 0, p99: 0, max: 0 }),
   }
 }
 
+function computeJitterMean() {
+  const n = Math.min(jitterWCount, JITTER_WINDOW)
+  if (n < 3) return 0
+  let sum = 0
+  for (let i = 0; i < n; i++) sum += jitterWindow[i]
+  return sum / n
+}
+
+function computeJitterStddev(mean) {
+  const n = Math.min(jitterWCount, JITTER_WINDOW)
+  return stddev(jitterWindow, n, mean)
+}
+
+function pushEvent(deltaMs, type, gl, camera) {
+  const recent = []
+  const n = Math.min(frameCount, 20)
+  let idx = (frameIdx - 1 + MAX_FRAMES) % MAX_FRAMES
+  for (let i = 0; i < n; i++) {
+    recent.push(round(frameDeltas[idx]))
+    idx = (idx - 1 + MAX_FRAMES) % MAX_FRAMES
+  }
+  recent.reverse()
+
+  stutterEvents.push({
+    ts: performance.now(),
+    type,
+    delta: round(deltaMs, 1),
+    fps: Math.round(1000 / deltaMs),
+    camera: camera ? [round(camera.position.x), round(camera.position.y), round(camera.position.z)] : null,
+    gl: gl?.info
+      ? { calls: gl.info.render?.calls ?? 0, triangles: gl.info.render?.triangles ?? 0 }
+      : null,
+    recentDeltas: recent,
+  })
+  if (stutterEvents.length > MAX_STUTTER_EVENTS) stutterEvents.shift()
+}
+
 export function record(deltaSec, gl, camera) {
   const deltaMs = deltaSec * 1000
+  const warmedUp = frameCount > WARMUP_FRAMES
+
+  /* Ring buffer */
   frameDeltas[frameIdx] = deltaMs
   frameIdx = (frameIdx + 1) % MAX_FRAMES
   if (frameCount < MAX_FRAMES) frameCount++
   totalFrames++
 
-  if (recording && deltaMs > STUTTER_THRESHOLD_MS && frameCount > STUTTER_WARMUP_FRAMES) {
-    const recent = []
-    const n = Math.min(frameCount, 20)
-    let idx = (frameIdx - 1 + MAX_FRAMES) % MAX_FRAMES
-    for (let i = 0; i < n; i++) {
-      recent.push(round(frameDeltas[idx]))
-      idx = (idx - 1 + MAX_FRAMES) % MAX_FRAMES
-    }
-    recent.reverse()
+  /* Jitter window */
+  jitterWindow[jitterWIdx] = deltaMs
+  jitterWIdx = (jitterWIdx + 1) % JITTER_WINDOW
+  if (jitterWCount < JITTER_WINDOW) jitterWCount++
 
-    stutterEvents.push({
-      ts: performance.now(),
-      delta: round(deltaMs, 1),
-      fps: Math.round(1000 / deltaMs),
-      camera: camera ? [round(camera.position.x), round(camera.position.y), round(camera.position.z)] : null,
-      gl: gl?.info
-        ? { calls: gl.info.render?.calls ?? 0, triangles: gl.info.render?.triangles ?? 0 }
-        : null,
-      recentDeltas: recent,
-    })
-    if (stutterEvents.length > MAX_STUTTER_EVENTS) stutterEvents.shift()
+  /* Jitter detection — std dev van rolling window > 5ms = pacing jitter */
+  const jMean = computeJitterMean()
+  const jSd = jMean > 0 ? computeJitterStddev(jMean) : 0
+  const isJitter = warmedUp && jitterWCount >= JITTER_WINDOW && jSd > JITTER_STDDEV_THRESHOLD
+
+  if (isJitter) {
+    totalJitterEvents++
+    if (recording) pushEvent(deltaMs, 'jitter', gl, camera)
+  }
+
+  /* Stutter detection — delta > 30ms */
+  if (warmedUp && deltaMs > STUTTER_MS) {
+    totalStutterEvents++
+    if (recording) pushEvent(deltaMs, 'stutter', gl, camera)
+  }
+
+  /* Severe detection — delta > 50ms */
+  if (warmedUp && deltaMs > SEVERE_MS) {
+    totalSevereEvents++
+    if (recording) pushEvent(deltaMs, 'severe', gl, camera)
   }
 }
 
@@ -120,12 +205,22 @@ export function isRecording() {
 export function downloadDump() {
   const stats = computeStats()
   const now = performance.now()
+  const jMean = computeJitterMean()
+  const jSd = jMean > 0 ? computeJitterStddev(jMean) : 0
+  const jScore = jMean > 0 ? Math.max(0, Math.min(100, round(100 - (jSd / jMean) * 100, 1))) : 100
 
   const payload = {
     captured: new Date().toISOString(),
     duration: startTime ? Math.round((now - startTime) / 1000) + 's' : '0s',
     totalFrames,
-    totalStutters: stutterEvents.length,
+    jitterCount: totalJitterEvents,
+    stutterCount: totalStutterEvents,
+    severeCount: totalSevereEvents,
+    jitterScore: jScore,
+    jitterThreshold: JITTER_MS,
+    stutterThreshold: STUTTER_MS,
+    severeThreshold: SEVERE_MS,
+    jitterStddevThreshold: JITTER_STDDEV_THRESHOLD,
     recording,
     frameStats: stats || { avgFps: 0, p50: 0, p95: 0, p99: 0, max: 0 },
     stutterEvents: stutterEvents.slice(),
@@ -144,7 +239,7 @@ export function downloadDump() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    console.log(`[stutterDebug] Downloaded ${stutterEvents.length} stutter events (${Math.round(blob.size / 1024)} KB)`)
+    console.log(`[stutterDebug] Downloaded ${stutterEvents.length} events (${Math.round(blob.size / 1024)} KB)`)
     return
   } catch { /* fallback below */ }
 
