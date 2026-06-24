@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { perf } from '../lib/perfDebug'
 
 const _tlPoint = new THREE.Vector3()
 
@@ -87,6 +88,7 @@ function TimelineLines({ demons }) {
 
   useFrame((state) => {
     try {
+      const end = perf.time('TimelineLines')
       if (!partRef.current || !curve) return
       if (!partRef.current.geometry?.attributes?.position?.array) return
       const time = state.clock.getElapsedTime() * 0.3
@@ -99,6 +101,7 @@ function TimelineLines({ demons }) {
         pos[i * 3 + 2] = _tlPoint.z
       }
       partRef.current.geometry.attributes.position.needsUpdate = true
+      end()
     } catch (e) { console.warn('[useFrame TimelineLines]', e) }
   })
 

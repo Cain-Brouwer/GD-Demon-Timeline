@@ -181,6 +181,7 @@ function CameraAnimator() {
 
   useFrame(() => {
     try {
+      const end = perf.time('CameraAnimator')
       if (!controls) return
 
       const isViewAll = viewAllTrigger !== lastTrigger.current
@@ -230,6 +231,7 @@ function CameraAnimator() {
         animRef.current.onDone()
         animRef.current = null
       }
+      end()
     } catch (e) { console.warn('[useFrame CameraAnimator]', e) }
   }, undefined)
 
@@ -278,9 +280,11 @@ function Starfield({ bounds }) {
 
   useFrame(() => {
     try {
+      const end = perf.time('Starfield')
       if (starsRef.current) {
         starsRef.current.rotation.y += 0.00012
       }
+      end()
     } catch (e) { console.warn('[useFrame Starfield]', e) }
   })
 
@@ -472,9 +476,11 @@ function Ton618BlackHole() {
 
   useFrame(() => {
     try {
+      const end = perf.time('Ton618BH')
       if (groupRef.current) {
         groupRef.current.rotation.y += 0.0008
       }
+      end()
     } catch (e) { console.warn('[useFrame Ton618BH]', e) }
   })
 
@@ -723,9 +729,10 @@ function WASDControls() {
   }, [])
 
   useFrame((_, delta) => {
+    const end = perf.time('WASDControls')
     try {
-      if (!controls) return
-      if (!keys.current.w && !keys.current.a && !keys.current.s && !keys.current.d) return
+      if (!controls) { end(); return }
+      if (!keys.current.w && !keys.current.a && !keys.current.s && !keys.current.d) { end(); return }
       const speed = (keys.current.shift ? 60 : 20) * delta
       const forward = _forward.current
       camera.getWorldDirection(forward)
@@ -738,11 +745,12 @@ function WASDControls() {
       if (keys.current.s) move.sub(forward)
       if (keys.current.a) move.sub(right)
       if (keys.current.d) move.add(right)
-      if (move.length() === 0) return
+      if (move.length() === 0) { end(); return }
       move.normalize().multiplyScalar(speed)
       camera.position.add(move)
       controls.target.add(move)
       controls.update()
+      end()
     } catch (e) { console.warn('[useFrame WASDControls]', e) }
   })
 
@@ -804,6 +812,7 @@ function CameraMetrics() {
   const lastUpdate = useRef(0)
   const lastPos = useRef({ x: 0, y: 0, z: 0 })
   useFrame(({ camera }) => {
+    const end = perf.time('CameraMetrics')
     try {
       const now = performance.now()
       if (now - lastUpdate.current > 600) {
@@ -816,11 +825,12 @@ function CameraMetrics() {
           Math.abs(next.x - lastPos.current.x) >= 2 ||
           Math.abs(next.y - lastPos.current.y) >= 2 ||
           Math.abs(next.z - lastPos.current.z) >= 2
-        if (!moved) return
+        if (!moved) { end(); return }
         lastUpdate.current = now
         lastPos.current = next
         setCameraPos(next)
       }
+      end()
     } catch (e) { console.warn('[useFrame CameraMetrics]', e) }
   })
   return null
@@ -846,10 +856,11 @@ function EffectComposerWrapper() {
     }
   }, [size])
   
+  if (!bloomEnabled) return null
+  
   return (
     <EffectComposer>
       <Bloom 
-        enabled={bloomEnabled}
         luminanceThreshold={bloomConfig.luminanceThreshold}
         luminanceSmoothing={bloomConfig.luminanceSmoothing}
         intensity={bloomConfig.intensity}
