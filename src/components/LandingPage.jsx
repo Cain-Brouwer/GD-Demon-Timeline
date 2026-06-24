@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTimelineStore } from '../store/timelineStore'
+import { supabase } from '../lib/supabase'
+import AuthModal from './AuthModal'
+import SettingsModal from './SettingsModal'
 
 const DEMON_COLORS = {
   'Easy Demon': '#00ff00',
@@ -127,6 +130,10 @@ function DemonIcon({ color, size = 8 }) {
 
 function LandingPage({ onEnter }) {
   const [fadeOut, setFadeOut] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const user = useTimelineStore((s) => s.user)
+  const setUser = useTimelineStore((s) => s.setUser)
   const demons = useTimelineStore((s) => s.demons)
   const beaten = demons.filter((d) => d.progress === 100).length
   const total = demons.length
@@ -151,6 +158,100 @@ function LandingPage({ onEnter }) {
       }}
     >
       <ParticleCanvas />
+
+      {/* Header bar */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: 8,
+          padding: '12px 20px',
+        }}
+      >
+        <button
+          onClick={() => setShowSettings(true)}
+          title="Render Settings"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 4,
+            color: '#cbc4d2',
+            fontSize: 16,
+            fontFamily: 'Inter, sans-serif',
+            cursor: 'pointer',
+            padding: '6px 10px',
+            lineHeight: 1,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        >
+          ⚙
+        </button>
+
+        {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                fontSize: 12,
+                fontFamily: 'JetBrains Mono, monospace',
+                color: '#948e9c',
+                letterSpacing: '0.02em',
+              }}
+            >
+              {user.email}
+            </span>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut()
+                setUser(null)
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 4,
+                color: '#ff6b6b',
+                fontSize: 11,
+                fontFamily: 'Inter, sans-serif',
+                cursor: 'pointer',
+                padding: '6px 10px',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAuth(true)}
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 4,
+              color: '#cfbcff',
+              fontSize: 11,
+              fontFamily: 'Inter, sans-serif',
+              cursor: 'pointer',
+              padding: '6px 10px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+          >
+            Sign In
+          </button>
+        )}
+      </div>
 
       <div
         style={{
@@ -332,6 +433,9 @@ function LandingPage({ onEnter }) {
           React 19 · Three.js · Zustand · Supabase · Cloudflare Pages
         </div>
       </div>
+
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </div>
   )
 }
