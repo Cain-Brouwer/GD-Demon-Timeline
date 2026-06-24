@@ -15,7 +15,7 @@ const TimelineScene = lazy(() => import('./components/TimelineScene'))
 const APP_KEY = import.meta.env.VITE_APP_KEY
 
 function App() {
-  const [showLanding, setShowLanding] = useState(() => !localStorage.getItem('neon-entered'))
+  const [showLanding, setShowLanding] = useState(true)
   const initDemons = useTimelineStore((s) => s.initDemons)
   const setUser = useTimelineStore((s) => s.setUser)
   const user = useTimelineStore((s) => s.user)
@@ -139,7 +139,6 @@ function App() {
 
   if (showLanding) {
     const handleEnter = () => {
-      localStorage.setItem('neon-entered', '1')
       setShowLanding(false)
     }
     return <LandingPage onEnter={handleEnter} />
