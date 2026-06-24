@@ -1,7 +1,8 @@
-import { useEffect, useRef, useCallback, lazy, Suspense } from 'react'
+import { useEffect, useRef, useCallback, lazy, Suspense, useState } from 'react'
 import UIOverlay from './components/UIOverlay'
 import YouTubeModal from './components/YouTubeModal'
 import YouTubeMiniPlayer from './components/YouTubeMiniPlayer'
+import LandingPage from './components/LandingPage'
 import { useTimelineStore } from './store/timelineStore'
 import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
@@ -13,6 +14,7 @@ const TimelineScene = lazy(() => import('./components/TimelineScene'))
 const APP_KEY = import.meta.env.VITE_APP_KEY
 
 function App() {
+  const [showLanding, setShowLanding] = useState(() => !localStorage.getItem('neon-entered'))
   const initDemons = useTimelineStore((s) => s.initDemons)
   const setUser = useTimelineStore((s) => s.setUser)
   const user = useTimelineStore((s) => s.user)
@@ -132,6 +134,14 @@ function App() {
         </div>
       </div>
     )
+  }
+
+  if (showLanding) {
+    const handleEnter = () => {
+      localStorage.setItem('neon-entered', '1')
+      setShowLanding(false)
+    }
+    return <LandingPage onEnter={handleEnter} />
   }
 
   return (
