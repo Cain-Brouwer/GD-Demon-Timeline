@@ -1,3 +1,5 @@
+import * as THREE from 'three'
+
 /**
  * Render Debug — captures a detailed snapshot of the Three.js scene state
  * every 5 seconds into a ring buffer. Exposes window.__downloadRenderDump()
