@@ -90,18 +90,22 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       const t = state.clock.getElapsedTime()
       vec3.current.set(x, 0, z)
       const dist = camera.position.distanceTo(vec3.current)
+      const safeDelta = Math.min(delta, 1 / 30)
+      const depthOrderBase = Math.round(-dist * 100) * 10
 
       const screenScale = Math.max(0.3, dist / 50)
       const floatY = Math.sin(t * 0.8 + x) * 0.3
       
       if (spriteRef.current) {
+        spriteRef.current.renderOrder = depthOrderBase + 2
         spriteRef.current.position.y = floatY
       }
       if (glowRef.current && showGlow) {
+        glowRef.current.renderOrder = depthOrderBase + 1
         glowRef.current.position.y = floatY
       }
       if (spriteRef.current) {
-        scaleRef.current += (targetScale - scaleRef.current) * Math.min(delta * 6, 1)
+        scaleRef.current += (targetScale - scaleRef.current) * Math.min(safeDelta * 6, 1)
         const s = scaleRef.current * screenScale
         spriteRef.current.scale.setScalar(s)
         if (glowRef.current && showGlow) {
@@ -109,12 +113,14 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
         }
       }
       if (nameRef.current && showLabel) {
+        nameRef.current.renderOrder = depthOrderBase + 3
         nameRef.current.position.y = floatY + 2.8 * screenScale
         nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
         nameRef.current.visible = dist < 50
       }
       if (ringRef.current && showRing) {
-        ringRef.current.rotation.z += 0.008
+        ringRef.current.renderOrder = depthOrderBase + 4
+        ringRef.current.rotation.z += 0.008 * (safeDelta / (1 / 60))
         ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
         const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
         ringRef.current.scale.setScalar(s)
@@ -129,17 +135,12 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
     selectDemon(demon)
   }
 
-  const LAYER_GLOW = 0
-  const LAYER_ICON = 1
-  const LAYER_NAME = 2
-  const LAYER_RING = 3
-
   const colorObj = useMemo(() => new THREE.Color(diffColor), [diffColor])
 
   return (
     <group position={[x, 0, z]}>
       {showRing && (
-        <mesh ref={ringRef} renderOrder={LAYER_RING}>
+        <mesh ref={ringRef} renderOrder={0}>
           <torusGeometry args={[1.4, 0.04, 8, 16]} />
           <meshBasicMaterial
             color={isFuture ? '#555555' : diffColor}
@@ -153,7 +154,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       {showGlow && (
         <sprite
           ref={glowRef}
-          renderOrder={LAYER_GLOW}
+          renderOrder={0}
           frustumCulled={false}
           scale={[2.5, 2.5, 1]}
           onPointerOver={() => setHovered(true)}
@@ -165,6 +166,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
             color={isFuture ? '#666666' : colorObj}
             transparent
             opacity={isFuture ? 0.1 : 0.25}
+            depthTest={false}
             depthWrite={false}
           />
         </sprite>
@@ -172,7 +174,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
 
       <sprite
         ref={spriteRef}
-        renderOrder={LAYER_ICON}
+        renderOrder={0}
         frustumCulled={false}
         scale={[2, 2, 1]}
         onPointerOver={() => setHovered(true)}
@@ -183,15 +185,17 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
           map={iconTexture}
           transparent
           opacity={isFuture ? 0.35 : 1}
+          depthTest={false}
           depthWrite={false}
         />
       </sprite>
 
       {showLabel && (
-        <sprite ref={nameRef} renderOrder={LAYER_NAME} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
+        <sprite ref={nameRef} renderOrder={0} frustumCulled={false} scale={[nameAspect * 1.5, 1.5, 1]}>
           <spriteMaterial
             map={nameTexture}
             transparent
+            depthTest={false}
             depthWrite={false}
           />
         </sprite>

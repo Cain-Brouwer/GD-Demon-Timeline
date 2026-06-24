@@ -837,11 +837,10 @@ function EffectComposerWrapper() {
     }
   }, [size])
   
-  if (!bloomEnabled) return null
-  
   return (
     <EffectComposer>
       <Bloom 
+        enabled={bloomEnabled}
         luminanceThreshold={bloomConfig.luminanceThreshold}
         luminanceSmoothing={bloomConfig.luminanceSmoothing}
         intensity={bloomConfig.intensity}
@@ -850,21 +849,6 @@ function EffectComposerWrapper() {
       />
     </EffectComposer>
   )
-}
-
-function RenderGuard() {
-  const { gl } = useThree()
-  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
-  
-  useFrame(() => {
-    try {
-      if (!bloomEnabled) {
-        gl.autoClear = true
-      }
-    } catch (e) { console.warn('[useFrame RenderGuard]', e) }
-  })
-  
-  return null
 }
 
 function PerfMonitor() {
@@ -881,7 +865,6 @@ function PerfMonitor() {
 function SceneContent() {
   const demons = useTimelineStore((s) => s.demons)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
-  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const showNebula = useTimelineStore((s) => s.renderSettings.nebula)
   const showStarfield = useTimelineStore((s) => s.renderSettings.starfield)
   const showParticles = useTimelineStore((s) => s.renderSettings.floatingParticles)
@@ -905,7 +888,6 @@ function SceneContent() {
   return (
     <>
       <EffectComposerWrapper />
-      <RenderGuard />
       <PerfMonitor />
       
       <CameraMetrics />
