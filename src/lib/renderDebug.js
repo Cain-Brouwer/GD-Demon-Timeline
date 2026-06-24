@@ -164,38 +164,62 @@ export function getSnapshots() {
 }
 
 export function downloadDump() {
-  // Also take a final snapshot right now
   if (snapshots.length === 0) {
-    console.warn('[renderDebug] No snapshots collected yet')
+    console.warn('[renderDebug] No snapshots collected yet — wait 5+ seconds')
+    alert('No snapshots yet. Wait 5+ seconds and try again.')
     return
   }
 
-  const data = JSON.stringify(
-    {
-      captured: new Date().toISOString(),
-      totalSnapshots: snapshots.length,
-      intervalMs: SNAPSHOT_INTERVAL,
-      snapshots,
-    },
-    null,
-    2
-  )
+  const payload = {
+    captured: new Date().toISOString(),
+    totalSnapshots: snapshots.length,
+    intervalMs: SNAPSHOT_INTERVAL,
+    snapshots,
+  }
 
-  // Try localStorage first (persists across page reloads)
+  const json = JSON.stringify(payload, null, 2)
+
+  // Persist to localStorage
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(snapshots.slice(-MAX_SNAPSHOTS)))
   } catch {}
 
-  const blob = new Blob([data], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `render-debug-${Date.now()}.json`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-  console.log(`[renderDebug] Downloaded ${snapshots.length} snapshots (${Math.round(blob.size / 1024)} KB)`)
+  // Try download via Blob
+  try {
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `render-debug-${Date.now()}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    console.log(`[renderDebug] Downloaded ${snapshots.length} snapshots (${Math.round(blob.size / 1024)} KB)`)
+    return
+  } catch (e) {
+    console.warn('[renderDebug] Blob download failed:', e.message)
+  }
+
+  // Fallback: open in new tab
+  try {
+    const w = window.open('', '_blank')
+    if (w) {
+      w.document.write(`<pre>${json}</pre>`)
+      w.document.title = 'render-debug-dump.json'
+      w.document.close()
+      console.log('[renderDebug] Opened dump in new tab — save as .json')
+      return
+    }
+  } catch {}
+
+  // Last resort: alert with instructions
+  alert(
+    `Download failed.\n\nCopy this data from the console:\n` +
+    `1. Press Ctrl+Shift+J to open console\n` +
+    `2. Type: copy(JSON.stringify(window.__getRenderSnapshots()))\n` +
+    `3. Paste into a file called render-debug.json`
+  )
 }
 
 // Restore from localStorage on load (in case page was reloaded)
@@ -214,19 +238,66 @@ export function restoreFromStorage() {
 
 // Expose globally
 if (typeof window !== 'undefined') {
-  window.__downloadRenderDump = () => {
-    downloadDump()
-  }
+  window.__downloadRenderDump = downloadDump
   window.__getRenderSnapshots = getSnapshots
-  window.__renderDebugSnapshots = snapshots
+  window.__renderDebugSnapshots = () => snapshots
 
-  // Ctrl+Shift+D to download
+  // Test function: run window.__testRenderDebug() in console
+  window.__testRenderDebug = () => {
+    const s = snapshots.length
+    console.log(`[renderDebug] Snapshots collected: ${s}`)
+    console.log(`[renderDebug] Module loaded: true`)
+    if (s > 0) {
+      console.log(`[renderDebug] Latest snapshot:`, snapshots[s - 1])
+    } else {
+      console.warn('[renderDebug] No snapshots yet — wait 5+ seconds and try Ctrl+Shift+E')
+    }
+    return { loaded: true, snapshots: s }
+  }
+
+  // Alt+Shift+E to download (avoid Chrome Ctrl+Shift+D bookmark conflict)
   window.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+    if (e.altKey && e.shiftKey && e.key === 'E') {
       e.preventDefault()
       downloadDump()
     }
   })
+
+  // Also try Ctrl+Shift+D but catch the keyup variant
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+      e.preventDefault()
+      e.stopPropagation()
+      downloadDump()
+    }
+  })
+
+  // Last resort: a tiny clickable label at the bottom of the page
+  const debugBtn = document.createElement('div')
+  debugBtn.id = 'render-debug-btn'
+  debugBtn.textContent = '⬇'
+  Object.assign(debugBtn.style, {
+    position: 'fixed',
+    bottom: 4,
+    right: 4,
+    zIndex: 99999,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.15)',
+    cursor: 'pointer',
+    fontFamily: 'monospace',
+    padding: '2px 4px',
+    borderRadius: 2,
+    background: 'rgba(255,255,255,0.03)',
+    userSelect: 'none',
+  })
+  debugBtn.title = 'Download render debug dump (snapshots collected so far)'
+  debugBtn.addEventListener('click', () => downloadDump())
+  // Only add after DOM is ready
+  if (document.body) {
+    document.body.appendChild(debugBtn)
+  } else {
+    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(debugBtn))
+  }
 
   // On load, try to restore previous session's data
   restoreFromStorage()
