@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { record, mountButton, unmountButton } from '../lib/stutterDebug'
+import { record } from '../lib/stutterDebug'
 import { perf } from '../lib/perfDebug'
 
 function StutterDebugger() {
@@ -9,11 +9,6 @@ function StutterDebugger() {
   useEffect(() => {
     perf.logWebGLInfo(gl)
   }, [gl])
-
-  useEffect(() => {
-    mountButton()
-    return () => unmountButton()
-  }, [])
 
   useFrame((_, delta) => {
     try {
