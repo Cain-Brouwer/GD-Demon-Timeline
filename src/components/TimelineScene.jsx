@@ -537,10 +537,16 @@ function BlackHole() {
 
   useEffect(() => {
     if (scene) {
+      let idx = 0
       scene.traverse((child) => {
         if (child.isMesh) {
           child.frustumCulled = false
           child.geometry.computeBoundingSphere()
+          child.material.depthWrite = true
+          child.material.polygonOffset = true
+          child.material.polygonOffsetFactor = -1 - idx * 0.01
+          child.material.polygonOffsetUnits = -1
+          idx++
         }
       })
     }
