@@ -67,6 +67,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
   const glowRef = useRef()
   const nameRef = useRef()
   const scaleRef = useRef(1)
+  const orderRef = useRef(null)
   const ringRef = useRef()
   const [hovered, setHovered] = useState(false)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
@@ -91,17 +92,21 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
       vec3.current.set(x, 0, z)
       const dist = camera.position.distanceTo(vec3.current)
       const safeDelta = Math.min(delta, 1 / 30)
-      const depthOrderBase = Math.round(-dist * 100) * 10
+      const depthOrderBase = Math.round(-dist * 4) * 10
 
       const screenScale = Math.max(0.3, dist / 50)
       const floatY = Math.sin(t * 0.8 + x) * 0.3
       
       if (spriteRef.current) {
-        spriteRef.current.renderOrder = depthOrderBase + 2
+        if (orderRef.current !== depthOrderBase) {
+          spriteRef.current.renderOrder = depthOrderBase + 2
+        }
         spriteRef.current.position.y = floatY
       }
       if (glowRef.current && showGlow) {
-        glowRef.current.renderOrder = depthOrderBase + 1
+        if (orderRef.current !== depthOrderBase) {
+          glowRef.current.renderOrder = depthOrderBase + 1
+        }
         glowRef.current.position.y = floatY
       }
       if (spriteRef.current) {
@@ -113,19 +118,24 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
         }
       }
       if (nameRef.current && showLabel) {
-        nameRef.current.renderOrder = depthOrderBase + 3
+        if (orderRef.current !== depthOrderBase) {
+          nameRef.current.renderOrder = depthOrderBase + 3
+        }
         nameRef.current.position.y = floatY + 2.8 * screenScale
         nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
         nameRef.current.visible = dist < 50
       }
       if (ringRef.current && showRing) {
-        ringRef.current.renderOrder = depthOrderBase + 4
+        if (orderRef.current !== depthOrderBase) {
+          ringRef.current.renderOrder = depthOrderBase + 4
+        }
         ringRef.current.rotation.z += 0.008 * (safeDelta / (1 / 60))
         ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
         const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
         ringRef.current.scale.setScalar(s)
         ringRef.current.visible = dist < 120
       }
+      orderRef.current = depthOrderBase
       end()
     } catch (e) { console.warn('[useFrame DemonSphere]', e) }
   })

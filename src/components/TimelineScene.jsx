@@ -801,16 +801,24 @@ function FloatingParticles({ bounds }) {
 function CameraMetrics() {
   const setCameraPos = useTimelineStore((s) => s.setCameraPos)
   const lastUpdate = useRef(0)
+  const lastPos = useRef({ x: 0, y: 0, z: 0 })
   useFrame(({ camera }) => {
     try {
       const now = performance.now()
-      if (now - lastUpdate.current > 200) {
-        lastUpdate.current = now
-        setCameraPos({
+      if (now - lastUpdate.current > 600) {
+        const next = {
           x: Math.round(camera.position.x),
           y: Math.round(camera.position.y),
           z: Math.round(camera.position.z),
-        })
+        }
+        const moved =
+          Math.abs(next.x - lastPos.current.x) >= 2 ||
+          Math.abs(next.y - lastPos.current.y) >= 2 ||
+          Math.abs(next.z - lastPos.current.z) >= 2
+        if (!moved) return
+        lastUpdate.current = now
+        lastPos.current = next
+        setCameraPos(next)
       }
     } catch (e) { console.warn('[useFrame CameraMetrics]', e) }
   })

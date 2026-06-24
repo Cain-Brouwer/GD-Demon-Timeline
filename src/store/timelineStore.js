@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import demonData from '../data/demons.json'
 
@@ -18,6 +18,33 @@ function todayStr() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
+
+let lastPersisted = null
+const dedupedStorage = createJSONStorage(() => {
+  if (typeof window === 'undefined') {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    }
+  }
+  return {
+    getItem: (name) => {
+      const value = localStorage.getItem(name)
+      lastPersisted = value
+      return value
+    },
+    setItem: (name, value) => {
+      if (value === lastPersisted) return
+      lastPersisted = value
+      localStorage.setItem(name, value)
+    },
+    removeItem: (name) => {
+      lastPersisted = null
+      localStorage.removeItem(name)
+    },
+  }
+})
 
 export const useTimelineStore = create(
   persist(
@@ -39,7 +66,11 @@ export const useTimelineStore = create(
       bloomEnabled: false,
       setBloomEnabled: (v) => set({ bloomEnabled: v }),
       cameraPos: { x: 0, y: 0, z: 0 },
-      setCameraPos: (pos) => set({ cameraPos: pos }),
+      setCameraPos: (pos) => {
+        const prev = get().cameraPos
+        if (prev.x === pos.x && prev.y === pos.y && prev.z === pos.z) return
+        set({ cameraPos: pos })
+      },
 
       renderSettings: {
         starfield: true,
@@ -169,6 +200,7 @@ export const useTimelineStore = create(
     }),
     {
       name: 'gd-timeline-storage',
+      storage: dedupedStorage,
       partialize: (state) => ({
         demons: state.demons,
         renderSettings: state.renderSettings,
