@@ -1,4 +1,4 @@
-import { memo, useRef, useState, useMemo } from 'react'
+import { memo, useRef, useState, useMemo, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
@@ -70,6 +70,7 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showL
   const scaleRef = useRef(1)
   const orderRef = useRef(null)
   const [hovered, setHovered] = useState(false)
+  const [thumbnailTex, setThumbnailTex] = useState(null)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const selectDemon = useTimelineStore((s) => s.selectDemon)
   const { camera } = useThree()
@@ -79,7 +80,20 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showL
   const isFuture = demon.progress === 0
   const targetScale = hovered || isSelected ? 2.7 : 2
   const vec3 = useRef(new THREE.Vector3())
-  const iconTexture = textures[demon.difficulty]
+  const iconTexture = thumbnailTex || textures[demon.difficulty]
+  const spriteAspect = useRef(1)
+
+  useEffect(() => {
+    if (!demon.thumbnail) { setThumbnailTex(null); return }
+    let cancelled = false
+    new THREE.TextureLoader().load(demon.thumbnail, (tex) => {
+      if (!cancelled) {
+        spriteAspect.current = tex.image.width / tex.image.height
+        setThumbnailTex(tex)
+      }
+    })
+    return () => { cancelled = true }
+  }, [demon.thumbnail])
 
   const nameTexture = useMemo(() => createNameTexture(demon.name, isFuture), [demon.name, isFuture])
   const nameAspect = nameTexture.image.width / nameTexture.image.height
@@ -113,7 +127,8 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showL
       if (spriteRef.current) {
         scaleRef.current += (targetScale - scaleRef.current) * Math.min(safeDelta * 6, 1)
         const s = scaleRef.current * screenScale
-        spriteRef.current.scale.setScalar(s)
+        const aspect = spriteAspect.current
+        spriteRef.current.scale.set(aspect > 1 ? s * aspect : s, s, 1)
         if (glowRef.current && showGlow) {
           glowRef.current.scale.setScalar(s * 1.25)
         }

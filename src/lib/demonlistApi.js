@@ -18,6 +18,24 @@ function posDifficulty(pos) {
   return 'Easy Demon'
 }
 
+function getYouTubeId(url) {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('/')[0]
+    if (u.pathname.includes('/embed/')) return u.pathname.split('/embed/')[1]
+    return u.searchParams.get('v')
+  } catch {
+    return null
+  }
+}
+
+function getThumbnail(url) {
+  const id = getYouTubeId(url)
+  if (!id) return null
+  return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`
+}
+
 export function mapApiDemonToApp(level) {
   return {
     id: `api-${level.id}`,
@@ -31,8 +49,9 @@ export function mapApiDemonToApp(level) {
     levelId: level.ingame_id,
     points: level.points,
     length: level.length,
+    placement: level.placement,
     showcaseUrl: level.verification_url || '',
-    thumbnail: null,
+    thumbnail: getThumbnail(level.verification_url),
     progress: 0,
     dateBeaten: 'N/A',
     apiId: level.id,

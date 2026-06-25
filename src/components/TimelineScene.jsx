@@ -57,11 +57,23 @@ function Tooltip({ demon }) {
           minWidth: 180,
         }}
       >
-        <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 4 }}>
-          {demon.name}
-        </div>
-        <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 6 }}>
-          by {demon.creator}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          {demon.thumbnail && (
+            <img
+              src={demon.thumbnail}
+              alt=""
+              style={{ width: 60, height: 34, borderRadius: 4, objectFit: 'cover' }}
+            />
+          )}
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: 15 }}>
+              {demon.placement != null && <span style={{ opacity: 0.5, marginRight: 4 }}>#{demon.placement}</span>}
+              {demon.name}
+            </div>
+            <div style={{ fontSize: 11, opacity: 0.6 }}>
+              by {demon.creator}
+            </div>
+          </div>
         </div>
         <div
           style={{
@@ -70,6 +82,10 @@ function Tooltip({ demon }) {
           }}
         >
           {demon.difficulty}{demon.stars ? ` \u2605 ${demon.stars}` : ''}
+        </div>
+        <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 4, display: 'flex', gap: 12 }}>
+          {demon.points != null && <span>pts: {demon.points.toLocaleString()}</span>}
+          {demon.length && <span>{demon.length}</span>}
         </div>
         <div style={{ fontSize: 11, opacity: 0.5, marginBottom: 8 }}>
           {demon.progress === 0 ? (
@@ -90,7 +106,7 @@ function Tooltip({ demon }) {
               </div>
             )}
             {demon.musicTitle && demon.musicArtist && (
-              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4, borderTop: demon.source === 'api' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.15)', paddingTop: 6 }}>
+              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4, borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 6 }}>
                 {demon.musicTitle} — {demon.musicArtist}
               </div>
             )}
