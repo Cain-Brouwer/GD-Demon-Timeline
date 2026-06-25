@@ -323,7 +323,7 @@ function Starfield({ bounds, qualityLevelIndex }) {
   )
 }
 
-function Nebula({ bounds, qualityLevelIndex, bloomEnabled }) {
+function Nebula({ bounds, qualityLevelIndex, bloomEnabled, intensity = 1 }) {
   const config = getLevelConfig(LEVELS[qualityLevelIndex])
   const nebulaCount = config.nebulaCount
   
@@ -406,7 +406,7 @@ function Nebula({ bounds, qualityLevelIndex, bloomEnabled }) {
         sizeAttenuation
         vertexColors
         transparent
-        opacity={bloomEnabled ? 0.04 : 0.18}
+        opacity={(bloomEnabled ? 0.04 : 0.18) * intensity}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
@@ -909,6 +909,7 @@ function SceneContent() {
   const showDemonGlow = useTimelineStore((s) => s.renderSettings.demonGlow)
   const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
   const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
+  const nebulaIntensity = useTimelineStore((s) => s.renderSettings.nebulaIntensity)
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
   const qConfig = getLevelConfig(LEVELS[qualityLevelIndex])
@@ -941,7 +942,7 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      {showNebula && <Nebula bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} bloomEnabled={bloomEnabled} />}
+      {showNebula && <Nebula bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} bloomEnabled={bloomEnabled} intensity={nebulaIntensity} />}
       {showStarfield && <Starfield bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
       {showParticles && <FloatingParticles bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
       {showShootingStars && <ShootingStars bounds={timelineBounds} />}

@@ -118,6 +118,7 @@ export const useTimelineStore = create(
       renderSettings: {
         starfield: true,
         nebula: true,
+        nebulaIntensity: 1.0,
         floatingParticles: true,
         shootingStars: true,
         blackHole: true,

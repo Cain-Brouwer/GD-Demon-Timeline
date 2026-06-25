@@ -4,7 +4,7 @@ import { LEVELS, getLevelAtIndex } from '../lib/qualityConfig'
 
 const SETTINGS = [
   { key: 'starfield', label: 'Starfield', desc: 'Twinkelende sterren achtergrond' },
-  { key: 'nebula', label: 'Nebula Clouds', desc: 'Nevelachtige wolken partikels' },
+  { key: 'nebula', label: 'Nebula Clouds', desc: 'Nevelachtige wolken partikels', hasSlider: 'nebulaIntensity', sliderLabel: 'Intensity', sliderMin: 0, sliderMax: 2, sliderStep: 0.1 },
   { key: 'floatingParticles', label: 'Floating Particles', desc: 'Zwevende licht partikels' },
   { key: 'shootingStars', label: 'Shooting Stars', desc: 'Vallende sterren' },
   { key: 'blackHole', label: 'Black Hole (TON 618)', desc: 'Zwart gat model aan het einde' },
@@ -180,28 +180,45 @@ function SettingsModal({ onClose }) {
           Render Toggles
         </div>
 
-        {SETTINGS.map(({ key, label, desc }) => (
-          <label
-            key={key}
-            style={{
-              display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12,
-              padding: isMobile ? '10px 0' : '8px 0',
-              cursor: 'pointer',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              minHeight: isMobile ? 44 : 'auto',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={renderSettings[key]}
-              onChange={() => setRenderSetting(key, !renderSettings[key])}
-              style={{ accentColor: '#c084fc', width: isMobile ? 20 : 16, height: isMobile ? 20 : 16, flexShrink: 0 }}
-            />
-            <div>
-              <div style={{ fontSize: isMobile ? 13 : 13 }}>{label}</div>
-              <div style={{ fontSize: isMobile ? 10 : 10, opacity: 0.4, marginTop: 2 }}>{desc}</div>
-            </div>
-          </label>
+        {SETTINGS.map(({ key, label, desc, hasSlider, sliderLabel, sliderMin, sliderMax, sliderStep }) => (
+          <div key={key} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12,
+                padding: isMobile ? '10px 0' : '8px 0',
+                cursor: 'pointer',
+                minHeight: isMobile ? 44 : 'auto',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={renderSettings[key]}
+                onChange={() => setRenderSetting(key, !renderSettings[key])}
+                style={{ accentColor: '#c084fc', width: isMobile ? 20 : 16, height: isMobile ? 20 : 16, flexShrink: 0 }}
+              />
+              <div>
+                <div style={{ fontSize: isMobile ? 13 : 13 }}>{label}</div>
+                <div style={{ fontSize: isMobile ? 10 : 10, opacity: 0.4, marginTop: 2 }}>{desc}</div>
+              </div>
+            </label>
+            {hasSlider && renderSettings[key] && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 0 8px 32px' }}>
+                <span style={{ fontSize: 10, opacity: 0.4, minWidth: 40 }}>{sliderLabel}</span>
+                <input
+                  type="range"
+                  min={sliderMin}
+                  max={sliderMax}
+                  step={sliderStep}
+                  value={renderSettings[hasSlider]}
+                  onChange={(e) => setRenderSetting(hasSlider, parseFloat(e.target.value))}
+                  style={{ flex: 1, accentColor: '#c084fc', height: 4 }}
+                />
+                <span style={{ fontSize: 10, opacity: 0.6, minWidth: 24, textAlign: 'right', fontFamily: 'monospace' }}>
+                  {renderSettings[hasSlider].toFixed(1)}
+                </span>
+              </div>
+            )}
+          </div>
         ))}
         <label
           style={{
