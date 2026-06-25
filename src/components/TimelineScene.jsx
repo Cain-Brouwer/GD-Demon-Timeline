@@ -889,16 +889,42 @@ function SceneContent() {
 
   useEffect(() => {
     if (!sceneTransitioning) return
-    let f1, f2
-    f1 = requestAnimationFrame(() => {
-      f2 = requestAnimationFrame(() => {
+
+    const MIN_WAIT = 1000
+    const STABLE_COUNT = 3
+    const MAX_WAIT = 5000
+
+    let stableFrames = 0
+    let prevTime = performance.now()
+    let rafId
+    const startTime = prevTime
+
+    const check = () => {
+      const now = performance.now()
+      const delta = now - prevTime
+      prevTime = now
+
+      if (delta < 100) {
+        stableFrames++
+      } else {
+        stableFrames = 0
+      }
+
+      if (stableFrames >= STABLE_COUNT && now - startTime >= MIN_WAIT) {
         setSceneTransitioning(false)
-      })
-    })
-    return () => {
-      cancelAnimationFrame(f1)
-      if (f2) cancelAnimationFrame(f2)
+        return
+      }
+
+      if (now - startTime >= MAX_WAIT) {
+        setSceneTransitioning(false)
+        return
+      }
+
+      rafId = requestAnimationFrame(check)
     }
+
+    rafId = requestAnimationFrame(check)
+    return () => cancelAnimationFrame(rafId)
   }, [sceneTransitioning, setSceneTransitioning])
 
   const timelineBounds = useMemo(() => {
