@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import demonData from '../data/demons.json'
+import { LEVELS, getLevelAtIndex } from '../lib/qualityConfig'
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -72,7 +73,9 @@ export const useTimelineStore = create(
         set({ cameraPos: pos })
       },
 
-      qualityMode: 'normal',
+      qualityLevelIndex: 3,
+      setQualityLevelIndex: (idx) => set({ qualityLevelIndex: idx, bloomEnabled: getLevelAtIndex(idx).bloomEnabled }),
+      qualityMode: 'auto',
       setQualityMode: (mode) => set({ qualityMode: mode }),
       performanceTested: false,
       setPerformanceTested: (v) => set({ performanceTested: v }),
@@ -92,11 +95,13 @@ export const useTimelineStore = create(
               samples.sort((a, b) => a - b)
               const avg = samples.reduce((a, b) => a + b, 0) / samples.length
               const p10 = samples[Math.floor(samples.length * 0.1)]
-              let mode = 'low'
-              if (avg >= 55 && p10 >= 45) mode = 'normal'
-              else if (avg >= 30) mode = 'low'
-              set({ qualityMode: mode, performanceTested: true })
-              resolve(mode)
+              let idx = 0
+              if (avg >= 55 && p10 >= 45) idx = 3
+              else if (avg >= 40 && p10 >= 30) idx = 2
+              else if (avg >= 25) idx = 1
+              const level = getLevelAtIndex(idx)
+              set({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, bloomEnabled: level.bloomEnabled })
+              resolve(LEVELS[idx])
               return
             }
             requestAnimationFrame(measure)
@@ -237,6 +242,7 @@ export const useTimelineStore = create(
       partialize: (state) => ({
         demons: state.demons,
         renderSettings: state.renderSettings,
+        qualityLevelIndex: state.qualityLevelIndex,
         qualityMode: state.qualityMode,
         performanceTested: state.performanceTested,
       }),

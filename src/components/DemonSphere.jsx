@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 import { perf } from '../lib/perfDebug'
 
+
 import easyIcon from '../assets/icons/Easy-Demon.png'
 import mediumIcon from '../assets/icons/Medium-Demon.png'
 import hardIcon from '../assets/icons/Hard-Demon.png'
@@ -62,13 +63,12 @@ function createNameTexture(name, isFuture) {
   return tex
 }
 
-const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showRing, showLabel }) {
+const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showLabel }) {
   const spriteRef = useRef()
   const glowRef = useRef()
   const nameRef = useRef()
   const scaleRef = useRef(1)
   const orderRef = useRef(null)
-  const ringRef = useRef()
   const [hovered, setHovered] = useState(false)
   const selectedDemon = useTimelineStore((s) => s.selectedDemon)
   const selectDemon = useTimelineStore((s) => s.selectDemon)
@@ -126,16 +126,6 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
         nameRef.current.scale.copy(nameBaseScale).multiplyScalar(screenScale)
         nameRef.current.visible = dist < 50
       }
-      if (ringRef.current && showRing) {
-        if (orderRef.current !== renderOrder) {
-          ringRef.current.renderOrder = renderOrder + 4
-        }
-        ringRef.current.rotation.z += 0.008 * (safeDelta / (1 / 60))
-        ringRef.current.rotation.x = 0.4 + Math.sin(t * 0.3 + x) * 0.1
-        const s = 0.8 + (hovered || isSelected ? 0.4 : 0)
-        ringRef.current.scale.setScalar(s)
-        ringRef.current.visible = dist < 120
-      }
       orderRef.current = renderOrder
       end()
     } catch (e) { console.warn('[useFrame DemonSphere]', e) }
@@ -150,18 +140,6 @@ const DemonSphere = memo(function DemonSphere({ demon, textures, showGlow, showR
 
   return (
     <group position={[x, 0, z]}>
-      {showRing && (
-        <mesh ref={ringRef} renderOrder={0}>
-          <torusGeometry args={[1.4, 0.04, 8, 16]} />
-          <meshBasicMaterial
-            color={isFuture ? '#555555' : diffColor}
-            transparent
-            opacity={isFuture ? 0.15 : (hovered || isSelected ? 0.5 : 0.25)}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
-
       {showGlow && (
         <sprite
           ref={glowRef}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTimelineStore } from '../store/timelineStore'
+import { LEVELS, getLevelAtIndex } from '../lib/qualityConfig'
 
 const SETTINGS = [
   { key: 'starfield', label: 'Starfield', desc: 'Twinkelende sterren achtergrond' },
@@ -15,10 +16,14 @@ const SETTINGS = [
 function SettingsModal({ onClose }) {
   const renderSettings = useTimelineStore((s) => s.renderSettings)
   const setRenderSetting = useTimelineStore((s) => s.setRenderSetting)
+  const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
+  const setQualityLevelIndex = useTimelineStore((s) => s.setQualityLevelIndex)
   const qualityMode = useTimelineStore((s) => s.qualityMode)
   const setQualityMode = useTimelineStore((s) => s.setQualityMode)
   const runPerformanceTest = useTimelineStore((s) => s.runPerformanceTest)
   const [testing, setTesting] = useState(false)
+
+  const currentLevel = getLevelAtIndex(qualityLevelIndex)
 
   const handleTest = async () => {
     setTesting(true)
@@ -52,36 +57,71 @@ function SettingsModal({ onClose }) {
         </div>
 
         <div style={{ marginBottom: 16, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontSize: 13, marginBottom: 8 }}>Quality Mode</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {['low', 'normal'].map((mode) => (
+          <div style={{ fontSize: 13, marginBottom: 8 }}>Quality Level</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {LEVELS.map((level, idx) => (
               <button
-                key={mode}
-                onClick={() => setQualityMode(mode)}
+                key={level}
+                onClick={() => setQualityLevelIndex(idx)}
                 style={{
                   flex: 1,
-                  background: qualityMode === mode ? '#c084fc' : 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${qualityMode === mode ? '#c084fc' : 'rgba(255,255,255,0.2)'}`,
+                  background: qualityLevelIndex === idx ? '#c084fc' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${qualityLevelIndex === idx ? '#c084fc' : 'rgba(255,255,255,0.2)'}`,
                   color: 'white',
-                  padding: '6px 12px',
+                  padding: '6px 6px',
                   borderRadius: 6,
-                  fontSize: 11,
+                  fontSize: 10,
                   fontFamily: 'monospace',
                   cursor: 'pointer',
-                  fontWeight: qualityMode === mode ? 'bold' : 'normal',
+                  fontWeight: qualityLevelIndex === idx ? 'bold' : 'normal',
                 }}
               >
-                {mode === 'low' ? 'Low' : 'Normal'}
+                {getLevelAtIndex(idx).label}
               </button>
             ))}
           </div>
-          <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4 }}>
-            Low: reduced particles, lighter bloom. Normal: full quality.
+          <div style={{ fontSize: 10, opacity: 0.4, marginTop: 6 }}>
+            Current: <span style={{ color: '#c084fc' }}>{currentLevel.label}</span>
+            {' | '}Mode: <span style={{ color: qualityMode === 'auto' ? '#4ade80' : '#fbbf24' }}>{qualityMode === 'auto' ? 'Auto' : 'Manual'}</span>
           </div>
         </div>
 
-        <div style={{ marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontSize: 13, marginBottom: 8 }}>Performance Test</div>
+        <div style={{ marginBottom: 16, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 13 }}>Mode</span>
+            <button
+              onClick={() => setQualityMode('auto')}
+              style={{
+                background: qualityMode === 'auto' ? '#4ade80' : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${qualityMode === 'auto' ? '#4ade80' : 'rgba(255,255,255,0.2)'}`,
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: 6,
+                fontSize: 11,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+                fontWeight: qualityMode === 'auto' ? 'bold' : 'normal',
+              }}
+            >
+              Auto
+            </button>
+            <button
+              onClick={() => setQualityMode('manual')}
+              style={{
+                background: qualityMode === 'manual' ? '#fbbf24' : 'rgba(255,255,255,0.06)',
+                border: `1px solid ${qualityMode === 'manual' ? '#fbbf24' : 'rgba(255,255,255,0.2)'}`,
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: 6,
+                fontSize: 11,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+                fontWeight: qualityMode === 'manual' ? 'bold' : 'normal',
+              }}
+            >
+              Manual
+            </button>
+          </div>
           <button
             onClick={handleTest}
             disabled={testing}
@@ -97,7 +137,7 @@ function SettingsModal({ onClose }) {
               opacity: testing ? 0.5 : 1,
             }}
           >
-            {testing ? 'Measuring...' : qualityMode === 'low' ? '⚠ Low — Retest' : '✅ Normal — Retest'}
+            {testing ? 'Measuring...' : 'Run Performance Test'}
           </button>
           <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4 }}>
             Measures FPS over 3 seconds and adjusts quality automatically.

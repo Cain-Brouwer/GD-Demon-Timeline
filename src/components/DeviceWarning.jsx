@@ -1,11 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTimelineStore } from '../store/timelineStore'
+import { LEVELS, getLevelAtIndex } from '../lib/qualityConfig'
+import { detectDevice } from '../lib/detectDevice'
 
 function DeviceWarning({ onClose }) {
   const runPerformanceTest = useTimelineStore((s) => s.runPerformanceTest)
   const setPerformanceTested = useTimelineStore((s) => s.setPerformanceTested)
+  const setQualityLevelIndex = useTimelineStore((s) => s.setQualityLevelIndex)
   const [testing, setTesting] = useState(false)
   const [result, setResult] = useState(null)
+  const [deviceInfo, setDeviceInfo] = useState(null)
+
+  useEffect(() => {
+    detectDevice().then(setDeviceInfo)
+  }, [])
 
   const handleTest = async () => {
     setTesting(true)
@@ -15,9 +23,18 @@ function DeviceWarning({ onClose }) {
   }
 
   const handleSkip = () => {
+    if (deviceInfo && deviceInfo.recommendedLevel != null) {
+      setQualityLevelIndex(deviceInfo.recommendedLevel)
+    }
     setPerformanceTested(true)
     onClose()
   }
+
+  const resultIdx = result != null ? LEVELS.indexOf(result) : -1
+  const resultLabel = resultIdx >= 0 ? getLevelAtIndex(resultIdx).label : null
+  const isGood = resultIdx >= 3
+
+  const recLabel = deviceInfo ? getLevelAtIndex(deviceInfo.recommendedLevel).label : null
 
   return (
     <div
@@ -48,6 +65,17 @@ function DeviceWarning({ onClose }) {
           performance test to optimize the visual settings for your device.
         </p>
 
+        {deviceInfo && !result && (
+          <div style={{ marginTop: 12, fontSize: 11, opacity: 0.5 }}>
+            Detected device: {deviceInfo.isMobile ? 'Mobile' : 'Desktop'}
+            {deviceInfo.gpu && ` · ${deviceInfo.gpu.renderer.slice(0, 30)}`}
+            {deviceInfo.memory && ` · ${deviceInfo.memory}GB RAM`}
+            <div style={{ marginTop: 4 }}>
+              Recommended: <span style={{ color: '#c084fc' }}>{recLabel}</span>
+            </div>
+          </div>
+        )}
+
         {testing && (
           <div style={{ marginTop: 16, fontSize: 12, color: '#c084fc' }}>
             Measuring performance...
@@ -56,9 +84,13 @@ function DeviceWarning({ onClose }) {
 
         {result && (
           <div style={{ marginTop: 16, fontSize: 12 }}>
-            {result === 'normal'
-              ? '✅ Your device can handle normal quality settings.'
-              : <span style={{ color: '#fbbf24' }}>⚠️ Low quality mode recommended for smooth performance.</span>}
+            {isGood
+              ? `✅ Your device can handle ${resultLabel} quality settings.`
+              : <span style={{ color: '#fbbf24' }}>⚠️ {resultLabel} quality mode recommended for smooth performance.</span>}
+            <div style={{ fontSize: 11, opacity: 0.5, marginTop: 8 }}>
+              Quality levels: Potato (minimal) → Low → Medium → High → Ultra (maximum).
+              The test selected <strong>{resultLabel}</strong> for your device.
+            </div>
           </div>
         )}
 

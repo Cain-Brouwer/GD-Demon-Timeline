@@ -6,10 +6,13 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useTimelineStore } from '../store/timelineStore'
 import { perf } from '../lib/perfDebug'
+import { getLevelConfig, LEVELS } from '../lib/qualityConfig'
 import EditDemonModal from './EditDemonModal'
 import DemonSphere, { ICON_MAP } from './DemonSphere'
 import RenderDebugger from './RenderDebugger'
 import StutterDebugger from './StutterDebugger'
+import FpsMonitor from './FpsMonitor'
+import InstancedRings from './InstancedRings'
 import TimelineLines from './TimelineLines'
 
 function getYouTubeId(url) {
@@ -238,17 +241,10 @@ function CameraAnimator() {
   return null
 }
 
-function Starfield({ bounds, qualityMode }) {
+function Starfield({ bounds, qualityLevelIndex }) {
   const starsRef = useRef()
-  
-  const starCount = useMemo(() => {
-    const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
-    const isHighRes = pixelCount > 2073600
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
-    if (qualityMode === 'low') return 400
-    if (isMobile || isHighRes) return 800
-    return 1500
-  }, [qualityMode])
+  const config = getLevelConfig(LEVELS[qualityLevelIndex])
+  const starCount = config.starCount
   
   const { positions, colors, sizes } = useMemo(() => {
     const count = starCount
@@ -300,17 +296,9 @@ function Starfield({ bounds, qualityMode }) {
   )
 }
 
-function Nebula({ bounds, qualityMode }) {
-  
-  const nebulaCount = useMemo(() => {
-    const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
-    const isHighRes = pixelCount > 2073600
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
-    if (qualityMode === 'low') return 15
-    if (isMobile) return 25
-    if (isHighRes) return 30
-    return 45
-  }, [qualityMode])
+function Nebula({ bounds, qualityLevelIndex }) {
+  const config = getLevelConfig(LEVELS[qualityLevelIndex])
+  const nebulaCount = config.nebulaCount
   
   const pointsRef = useRef()
   const baseData = useRef([])
@@ -757,18 +745,10 @@ function WASDControls() {
   return null
 }
 
-function FloatingParticles({ bounds, qualityMode }) {
+function FloatingParticles({ bounds, qualityLevelIndex }) {
   const ref = useRef()
-  
-  const particleCount = useMemo(() => {
-    const pixelCount = (typeof window !== 'undefined' ? window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1) : 2073600)
-    const isHighRes = pixelCount > 2073600
-    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent)
-    if (qualityMode === 'low') return 100
-    if (isMobile) return 150
-    if (isHighRes) return 200
-    return 300
-  }, [qualityMode])
+  const config = getLevelConfig(LEVELS[qualityLevelIndex])
+  const particleCount = config.particleCount
   
   const [positions, speeds] = useMemo(() => {
     const pos = new Float32Array(particleCount * 3)
@@ -838,23 +818,23 @@ function CameraMetrics() {
 
 function EffectComposerWrapper() {
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
-  const qualityMode = useTimelineStore((s) => s.qualityMode)
+  const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
   const { size } = useThree()
+  const config = getLevelConfig(LEVELS[qualityLevelIndex])
   
   const bloomConfig = useMemo(() => {
     const pixelCount = size.width * size.height
     const isHighRes = pixelCount > 2073600
-    const isLow = qualityMode === 'low'
     
     return {
       luminanceThreshold: isHighRes ? 0.2 : 0.15,
       luminanceSmoothing: 0.9,
-      intensity: isLow ? 0.3 : 0.5,
+      intensity: config.bloomIntensity,
       mipmapBlur: !isHighRes,
-      blur: isLow ? 3 : (isHighRes ? 4 : 6),
-      resolutionScale: isLow ? 0.5 : 1,
+      blur: config.bloomBlur,
+      resolutionScale: config.resolutionScale,
     }
-  }, [size, qualityMode])
+  }, [size, qualityLevelIndex])
   
   if (!bloomEnabled) return null
   
@@ -882,7 +862,8 @@ function SceneContent() {
   const showDemonGlow = useTimelineStore((s) => s.renderSettings.demonGlow)
   const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
   const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
-  const qualityMode = useTimelineStore((s) => s.qualityMode)
+  const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
+  const qConfig = getLevelConfig(LEVELS[qualityLevelIndex])
   const textures = useTexture(ICON_MAP)
 
   const timelineBounds = useMemo(() => {
@@ -899,6 +880,7 @@ function SceneContent() {
     <>
       <EffectComposerWrapper />
       <StutterDebugger />
+      <FpsMonitor />
       
       <CameraMetrics />
       <RenderDebugger />
@@ -911,18 +893,18 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      {showNebula && <Nebula bounds={timelineBounds} qualityMode={qualityMode} />}
-      {showStarfield && <Starfield bounds={timelineBounds} qualityMode={qualityMode} />}
-      {showParticles && <FloatingParticles bounds={timelineBounds} qualityMode={qualityMode} />}
+      {showNebula && <Nebula bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
+      {showStarfield && <Starfield bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
+      {showParticles && <FloatingParticles bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
       {showShootingStars && <ShootingStars bounds={timelineBounds} />}
       {showBlackHole && <BlackHole />}
       <CameraAnimator />
 
+      {showDemonRings && <InstancedRings demons={demons} ringSegments={qConfig.demonRingSegments} />}
       <TimelineLines demons={demons} />
       {demons.map((demon) => (
         <DemonSphere key={demon.id} demon={demon} textures={textures}
           showGlow={showDemonGlow}
-          showRing={showDemonRings}
           showLabel={showDemonLabels} />
       ))}
 
