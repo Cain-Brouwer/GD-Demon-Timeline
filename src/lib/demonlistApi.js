@@ -10,11 +10,18 @@ export async function fetchClassicDemons() {
   return json.data.levels
 }
 
+const DIFFICULTY_TIERS = [
+  { max: 50, difficulty: 'Extreme Demon' },
+  { max: 200, difficulty: 'Insane Demon' },
+  { max: 500, difficulty: 'Hard Demon' },
+  { max: 1000, difficulty: 'Medium Demon' },
+  { max: Infinity, difficulty: 'Easy Demon' },
+]
+
 function posDifficulty(pos) {
-  if (pos <= 50) return 'Extreme Demon'
-  if (pos <= 150) return 'Insane Demon'
-  if (pos <= 300) return 'Hard Demon'
-  if (pos <= 500) return 'Medium Demon'
+  for (const tier of DIFFICULTY_TIERS) {
+    if (pos <= tier.max) return tier.difficulty
+  }
   return 'Easy Demon'
 }
 
@@ -52,6 +59,7 @@ export function mapApiDemonToApp(level) {
     placement: level.placement,
     showcaseUrl: level.verification_url || '',
     thumbnail: getThumbnail(level.verification_url),
+    dateCreated: level.date_created,
     progress: 0,
     dateBeaten: 'N/A',
     apiId: level.id,
