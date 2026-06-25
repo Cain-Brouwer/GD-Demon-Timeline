@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import demonData from '../data/demons.json'
 import { LEVELS } from '../lib/qualityConfig'
-import { fetchRankedDemons, mapApiDemonToApp } from '../lib/demonlistApi'
+import { fetchClassicDemons, mapApiDemonToApp } from '../lib/demonlistApi'
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -136,9 +136,24 @@ export const useTimelineStore = create(
       fetchApiDemons: async () => {
         set({ apiLoading: true, apiError: null })
         try {
-          const raw = await fetchRankedDemons()
+          const raw = await fetchClassicDemons()
+          const local = get().localBackup || []
+
           const mapped = raw.map(mapApiDemonToApp)
-          set({ demons: assignPositions(mapped), apiDemons: mapped, apiLoading: false, apiError: null, initialised: true })
+          const apiNames = new Set(mapped.map((d) => d.name))
+
+          for (const apiDemon of mapped) {
+            const match = local.find((d) => d.name === apiDemon.name && d.source !== 'api')
+            if (match) {
+              apiDemon.progress = match.progress
+              apiDemon.dateBeaten = match.dateBeaten
+            }
+          }
+
+          const custom = local.filter((d) => d.source !== 'api' && !apiNames.has(d.name))
+
+          const merged = [...mapped, ...custom]
+          set({ demons: assignPositions(merged), apiDemons: mapped, apiLoading: false, apiError: null, initialised: true })
         } catch (e) {
           console.error('fetchApiDemons error:', e)
           set({ apiLoading: false, apiError: e.message || 'Failed to fetch demon list' })

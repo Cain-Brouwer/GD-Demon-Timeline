@@ -1,22 +1,13 @@
-const API_BASE = 'https://pointercrate.com/api/v2'
+const API_BASE = import.meta.env.VITE_DEMONLIST_API_URL || 'https://api.demonlist.org'
 
-export async function fetchRankedDemons() {
-  const all = []
-  let after = null
-  while (true) {
-    const params = new URLSearchParams({ limit: 100 })
-    if (after) params.set('after', after)
-    const res = await fetch(`${API_BASE}/demons/listed/?${params}`, {
-      headers: { Accept: 'application/json' },
-    })
-    if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
-    const data = await res.json()
-    if (!Array.isArray(data) || data.length === 0) break
-    all.push(...data)
-    if (data.length < 100) break
-    after = data[data.length - 1].position
-  }
-  return all
+export async function fetchClassicDemons() {
+  const res = await fetch(`${API_BASE}/level/classic/list?limit=1000`, {
+    headers: { Accept: 'application/json' },
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
+  const json = await res.json()
+  if (json.message !== 'success') throw new Error(json.message)
+  return json.data.levels
 }
 
 function posDifficulty(pos) {
@@ -27,23 +18,24 @@ function posDifficulty(pos) {
   return 'Easy Demon'
 }
 
-export function mapApiDemonToApp(demon) {
+export function mapApiDemonToApp(level) {
   return {
-    id: `api-${demon.id}`,
-    name: demon.name,
-    difficulty: posDifficulty(demon.position),
+    id: `api-${level.id}`,
+    name: level.name,
+    difficulty: posDifficulty(level.placement),
     stars: null,
-    creator: demon.publisher?.name || 'Unknown',
-    publisher: demon.publisher?.name || 'Unknown',
-    verifier: demon.verifier?.name || 'Unknown',
-    requirement: demon.requirement,
-    levelId: demon.level_id,
+    creator: level.holder,
+    publisher: level.holder,
+    verifier: level.verifier?.username || 'Unknown',
+    requirement: level.list_percent,
+    levelId: level.ingame_id,
+    points: level.points,
+    length: level.length,
+    showcaseUrl: level.verification_url || '',
+    thumbnail: null,
     progress: 0,
     dateBeaten: 'N/A',
-    showcaseUrl: demon.video || '',
-    thumbnail: demon.thumbnail || null,
-    apiId: demon.id,
+    apiId: level.id,
     source: 'api',
-    position: [0, 0, 0],
   }
 }
