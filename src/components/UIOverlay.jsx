@@ -101,11 +101,6 @@ function UIOverlay({ config }) {
   const triggerViewAll = useTimelineStore((s) => s.triggerViewAll)
   const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const setBloomEnabled = useTimelineStore((s) => s.setBloomEnabled)
-  const apiSource = useTimelineStore((s) => s.apiSource)
-  const apiDemons = useTimelineStore((s) => s.apiDemons)
-  const apiLoading = useTimelineStore((s) => s.apiLoading)
-  const apiError = useTimelineStore((s) => s.apiError)
-  const toggleApiSource = useTimelineStore((s) => s.toggleApiSource)
   const searchRef = useRef(null)
   const [flash, setFlash] = useState(false)
   const [stutterStats, setStutterStats] = useState({ stutterCount: 0, recording: false, duration: 0 })
@@ -804,19 +799,7 @@ function UIOverlay({ config }) {
           >
             docs
           </span>
-          <span
-            onClick={toggleApiSource}
-            style={{
-              marginLeft: isMobile ? 8 : 12,
-              cursor: 'pointer',
-              color: apiLoading ? '#fbbf24' : apiError ? '#ef4444' : apiSource === 'api' ? '#4ade80' : 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
-              textDecoration: 'underline',
-            }}
-            title={apiSource === 'api' ? `API: ${apiDemons.length} demons loaded` : 'Local data — click to switch'}
-          >
-            {apiLoading ? '⟳ api' : apiSource === 'api' ? `● ${apiDemons.length}` : 'local'}
-          </span>
+
           <span
             onClick={() => setShowSettings(true)}
             style={{

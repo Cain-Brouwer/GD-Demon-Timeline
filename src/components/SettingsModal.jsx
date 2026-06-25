@@ -21,11 +21,6 @@ function SettingsModal({ onClose }) {
   const qualityMode = useTimelineStore((s) => s.qualityMode)
   const setQualityMode = useTimelineStore((s) => s.setQualityMode)
   const runPerformanceTest = useTimelineStore((s) => s.runPerformanceTest)
-  const apiSource = useTimelineStore((s) => s.apiSource)
-  const apiLoading = useTimelineStore((s) => s.apiLoading)
-  const apiError = useTimelineStore((s) => s.apiError)
-  const apiDemons = useTimelineStore((s) => s.apiDemons)
-  const toggleApiSource = useTimelineStore((s) => s.toggleApiSource)
   const [testing, setTesting] = useState(false)
 
   const currentLevel = getLevelAtIndex(qualityLevelIndex)
@@ -149,59 +144,7 @@ function SettingsModal({ onClose }) {
           </div>
         </div>
 
-        <div style={{ marginBottom: 16, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontSize: 13, marginBottom: 8 }}>Data Source</div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              onClick={() => apiSource === 'api' && toggleApiSource()}
-              style={{
-                flex: 1,
-                background: apiSource === 'local' ? '#c084fc' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${apiSource === 'local' ? '#c084fc' : 'rgba(255,255,255,0.2)'}`,
-                color: 'white',
-                padding: '6px 6px',
-                borderRadius: 6,
-                fontSize: 11,
-                fontFamily: 'monospace',
-                cursor: 'pointer',
-                fontWeight: apiSource === 'local' ? 'bold' : 'normal',
-              }}
-            >
-              Local Data
-            </button>
-            <button
-              onClick={() => apiSource === 'local' && toggleApiSource()}
-              disabled={apiLoading}
-              style={{
-                flex: 1,
-                background: apiSource === 'api' ? '#c084fc' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${apiSource === 'api' ? '#c084fc' : 'rgba(255,255,255,0.2)'}`,
-                color: 'white',
-                padding: '6px 6px',
-                borderRadius: 6,
-                fontSize: 11,
-                fontFamily: 'monospace',
-                cursor: apiLoading ? 'default' : 'pointer',
-                fontWeight: apiSource === 'api' ? 'bold' : 'normal',
-                opacity: apiLoading ? 0.5 : 1,
-              }}
-            >
-              {apiLoading ? 'Loading...' : apiError ? 'Retry' : 'Official List'}
-            </button>
-          </div>
-          {apiError && (
-            <div style={{ fontSize: 10, color: '#ff6b6b', marginTop: 4 }}>
-              {apiError}
-            </div>
-          )}
-          {apiSource === 'api' && !apiLoading && !apiError && (
-            <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4 }}>
-              {apiDemons.length} demons loaded from pointercrate
-            </div>
-          )}
-        </div>
-
-        <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8, opacity: 0.6 }}>
+        <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8, opacity: 0.6, marginTop: 8 }}>
           Render Toggles
         </div>
 

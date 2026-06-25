@@ -113,50 +113,19 @@ export const useTimelineStore = create(
         })
       },
 
-      apiSource: 'local',
-      apiDemons: [],
-      apiLoading: false,
-      apiError: null,
-      localBackup: null,
-      toggleApiSource: () => {
+      officialDemons: [],
+      officialDemonsLoading: false,
+      officialDemonsError: null,
+      fetchOfficialDemons: async () => {
         const state = get()
-        if (state.apiSource === 'local') {
-          set({ localBackup: state.demons, apiSource: 'api', apiError: null })
-          get().fetchApiDemons()
-        } else {
-          set({
-            demons: state.localBackup || assignPositions(JSON.parse(JSON.stringify(demonData.demons))),
-            apiSource: 'local',
-            apiLoading: false,
-            apiError: null,
-            initialised: true,
-          })
-        }
-      },
-      fetchApiDemons: async () => {
-        set({ apiLoading: true, apiError: null })
+        if (state.officialDemons.length > 0) return
+        set({ officialDemonsLoading: true, officialDemonsError: null })
         try {
           const raw = await fetchClassicDemons()
-          const local = get().localBackup || []
-
           const mapped = raw.map(mapApiDemonToApp)
-          const apiNames = new Set(mapped.map((d) => d.name))
-
-          for (const apiDemon of mapped) {
-            const match = local.find((d) => d.name === apiDemon.name && d.source !== 'api')
-            if (match) {
-              apiDemon.progress = match.progress
-              apiDemon.dateBeaten = match.dateBeaten
-            }
-          }
-
-          const custom = local.filter((d) => d.source !== 'api' && !apiNames.has(d.name))
-
-          const merged = [...mapped, ...custom]
-          set({ demons: assignPositions(merged), apiDemons: mapped, apiLoading: false, apiError: null, initialised: true })
+          set({ officialDemons: mapped, officialDemonsLoading: false })
         } catch (e) {
-          console.error('fetchApiDemons error:', e)
-          set({ apiLoading: false, apiError: e.message || 'Failed to fetch demon list' })
+          set({ officialDemonsLoading: false, officialDemonsError: e.message || 'Failed to fetch demon list' })
         }
       },
 
@@ -184,13 +153,8 @@ export const useTimelineStore = create(
       initDemons: (data) => {
         const state = get()
         if (state.demons.length > 0) return
-        if (state.apiSource === 'api') {
-          set({ apiLoading: true })
-          get().fetchApiDemons()
-        } else {
-          const demons = assignPositions(data)
-          set({ demons, initialised: true })
-        }
+        const demons = assignPositions(data)
+        set({ demons, initialised: true })
       },
 
       addDemon: ({ insertId, beaten, dateBeaten, ...rest }) => {
@@ -300,7 +264,6 @@ export const useTimelineStore = create(
         qualityLevelIndex: state.qualityLevelIndex,
         qualityMode: state.qualityMode,
         performanceTested: state.performanceTested,
-        apiSource: state.apiSource,
       }),
     }
   )
