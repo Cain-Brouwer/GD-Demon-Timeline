@@ -32,8 +32,15 @@ function InstancedRings({ demons, ringSegments }) {
 
   useFrame((state) => {
     const mesh = meshRef.current
-    if (!mesh) return
+    if (!mesh || count === 0) return
     const t = state.clock.getElapsedTime()
+
+    let sumX = 0
+    for (let i = 0; i < count; i++) sumX += demons[i]?.position[0] || 0
+    const centerX = sumX / count
+    tempVec3.set(centerX, 0, 0)
+    const dist = camera.position.distanceTo(tempVec3)
+    mesh.renderOrder = Math.round(-dist * 50) * 10000 + 4
 
     for (let i = 0; i < count; i++) {
       const demon = demons[i]
