@@ -245,6 +245,9 @@ function Starfield({ bounds, qualityLevelIndex }) {
   const starsRef = useRef()
   const config = getLevelConfig(LEVELS[qualityLevelIndex])
   const starCount = config.starCount
+  const starSize = config.starSize
+  const starRangeY = config.starRangeY
+  const starRangeZ = config.starRangeZ
   
   const { positions, colors, sizes } = useMemo(() => {
     const count = starCount
@@ -255,8 +258,8 @@ function Starfield({ bounds, qualityLevelIndex }) {
     const siz = new Float32Array(count)
     for (let i = 0; i < count; i++) {
       pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * xRange * 2
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 400
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 500
+      pos[i * 3 + 1] = (Math.random() - 0.5) * starRangeY * 2
+      pos[i * 3 + 2] = (Math.random() - 0.5) * starRangeZ * 2
 
       const tint = Math.random()
       if (tint < 0.6) {
@@ -272,7 +275,7 @@ function Starfield({ bounds, qualityLevelIndex }) {
       siz[i] = 0.15 + Math.random() * 0.5
     }
     return { positions: pos, colors: col, sizes: siz }
-  }, [bounds, starCount])
+  }, [bounds, starCount, starRangeY, starRangeZ])
 
   useFrame(() => {
     try {
@@ -291,7 +294,7 @@ function Starfield({ bounds, qualityLevelIndex }) {
         <bufferAttribute attach="attributes-color" count={starCount} array={colors} itemSize={3} />
         <bufferAttribute attach="attributes-size" count={starCount} array={sizes} itemSize={1} />
       </bufferGeometry>
-      <pointsMaterial size={0.35} vertexColors transparent opacity={0.7} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={starSize} vertexColors transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
