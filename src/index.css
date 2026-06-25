@@ -13,6 +13,18 @@ body,
   background: #0a0015;
 }
 
+:root {
+  --font-xs: clamp(9px, 1.8vw, 11px);
+  --font-sm: clamp(10px, 2.2vw, 12px);
+  --font-md: clamp(12px, 2.6vw, 14px);
+  --font-lg: clamp(14px, 3.2vw, 18px);
+  --space-xs: clamp(2px, 1vw, 4px);
+  --space-sm: clamp(4px, 1.5vw, 8px);
+  --space-md: clamp(8px, 2vw, 16px);
+  --space-lg: clamp(12px, 3vw, 24px);
+  --touch-target: clamp(36px, 8vw, 44px);
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(100%);
@@ -22,6 +34,16 @@ body,
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes flashOut {
@@ -41,4 +63,13 @@ body,
 :focus-visible {
   outline: 2px solid #c084fc;
   outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --font-xs: 10px;
+    --font-sm: 11px;
+    --font-md: 13px;
+    --font-lg: 16px;
+  }
 }

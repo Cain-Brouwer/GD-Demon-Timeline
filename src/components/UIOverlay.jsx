@@ -80,6 +80,7 @@ function UIOverlay({ config }) {
   const [showImportExport, setShowImportExport] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showMobileList, setShowMobileList] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
   const isMobile = useMedia('(max-width: 768px)')
   const [showLeftDetail, setShowLeftDetail] = useState(!isMobile)
   const [confirmRemove, setConfirmRemove] = useState(null)
@@ -175,6 +176,27 @@ function UIOverlay({ config }) {
     return list
   }, [demons, searchQuery, filterDifficulty, filterStatus, sortBy, sortDir])
 
+  const menuItemStyle = {
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '14px 20px', cursor: 'pointer', fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    transition: 'background 0.15s',
+  }
+
+  const menuItems = [
+    { icon: '☰', label: 'Demon List', onClick: () => setShowMobileList(true) },
+    { icon: '📷', label: 'Screenshot', onClick: takeScreenshot },
+    { icon: '📖', label: 'Documentation', onClick: () => setShowDocs(true) },
+    { icon: '⚙️', label: 'Settings', onClick: () => setShowSettings(true) },
+    user ? null : { icon: '🔑', label: 'Sign In', onClick: () => setShowAuth(true) },
+    user ? { icon: '💾', label: 'Save to Cloud', onClick: cloudSave, badge: cloudStatus === 'saved' ? 'saved' : undefined } : null,
+    user ? { icon: '📂', label: 'Load from Cloud', onClick: cloudLoad } : null,
+    user ? { icon: '🚪', label: 'Sign Out', onClick: signOut, color: '#ff6b6b' } : null,
+    demons.length > 0 ? { icon: '📊', label: 'Statistics', onClick: () => setShowStats(true) } : null,
+    { icon: '⇄', label: 'Import / Export', onClick: () => setShowImportExport(true) },
+  ].filter(Boolean)
+
   return createPortal(
     <>
       {flash && (
@@ -205,31 +227,145 @@ function UIOverlay({ config }) {
       )}
 
       {isMobile && (
-        <button
-          onClick={() => setShowMobileList((v) => !v)}
-          style={{
-            position: 'fixed',
-            bottom: showMobileList ? 'auto' : 60,
-            top: showMobileList ? 10 : 'auto',
-            right: 10,
-            zIndex: 10010,
-            background: showMobileList ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.8)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: 8,
-            color: 'white',
-            fontSize: 18,
-            width: 40,
-            height: 40,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            fontFamily: 'monospace',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
-          }}
-        >
-          {showMobileList ? '✕' : '☰'}
-        </button>
+        <>
+          <button
+            onClick={() => setShowMenu((v) => !v)}
+            style={{
+              position: 'fixed',
+              bottom: 10,
+              right: 10,
+              zIndex: 10010,
+              background: showMenu ? 'rgba(192,132,252,0.25)' : 'rgba(0,0,0,0.8)',
+              border: showMenu ? '1px solid rgba(192,132,252,0.5)' : '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 10,
+              color: 'white',
+              fontSize: 20,
+              width: 44,
+              height: 44,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontFamily: 'monospace',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.6)',
+              transition: 'all 0.2s',
+            }}
+          >
+            {showMenu ? '✕' : '☰'}
+          </button>
+
+          {showMenu && (
+            <div
+              onClick={() => setShowMenu(false)}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 10005,
+                background: 'rgba(0,0,0,0.5)',
+                animation: 'fadeIn 0.15s ease-out',
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  bottom: 0, left: 0, right: 0,
+                  background: '#1a0a2e',
+                  borderTopLeftRadius: 16,
+                  borderTopRightRadius: 16,
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                  padding: '12px 0 max(env(safe-area-inset-bottom, 8px), 8px)',
+                  fontFamily: 'monospace',
+                  color: 'white',
+                  animation: 'slideUp 0.2s ease-out',
+                  maxHeight: '70vh',
+                  overflowY: 'auto',
+                }}
+              >
+                <div style={{ textAlign: 'center', fontSize: 13, color: '#c084fc', fontWeight: 'bold', marginBottom: 8, padding: '0 16px' }}>
+                  Menu
+                </div>
+                <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', marginBottom: 4 }} />
+
+                {menuItems.map((item) => (
+                  <div
+                    key={item.label}
+                    onClick={() => {
+                      item.onClick()
+                      setShowMenu(false)
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '14px 20px',
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      color: item.color || 'rgba(255,255,255,0.85)',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                  >
+                    <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{item.icon}</span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    {item.badge && (
+                      <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: 10 }}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                ))}
+
+                {debugEnabled && (
+                  <>
+                    <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                    <div style={{ padding: '8px 20px 4px', fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      Debug
+                    </div>
+                    <div
+                      onClick={() => { const r = perf.copyDump(); alert(r); setShowMenu(false) }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>📋</span>
+                      <span>Copy Debug Dump</span>
+                    </div>
+                    <div
+                      onClick={() => { if (typeof window.__downloadRenderDump === 'function') window.__downloadRenderDump(); setShowMenu(false) }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>⬇</span>
+                      <span>Download Render Dump</span>
+                    </div>
+                    <div
+                      onClick={() => {
+                        if (stutterStats.recording) stopRecording()
+                        else startRecording()
+                        setStutterStats(getStats())
+                        setShowMenu(false)
+                      }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{stutterStats.recording ? '⏹' : '⏺'}</span>
+                      <span>{stutterStats.recording ? 'Stop Recording' : 'Start Recording'}</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, opacity: 0.4 }}>
+                        {stutterStats.recording
+                          ? `${stutterStats.duration > 60 ? `${Math.floor(stutterStats.duration / 60)}m` : `${stutterStats.duration}s`}`
+                          : `j:${stutterStats.jitterCount} s:${stutterStats.stutterCount + stutterStats.severeCount}`}
+                      </span>
+                    </div>
+                    <div
+                      onClick={() => { downloadDump(); setShowMenu(false) }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>⬇sd</span>
+                      <span>Download Stutter Dump</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {confirmRemove && (
@@ -430,24 +566,41 @@ function UIOverlay({ config }) {
         style={{
           display: isMobile && !showMobileList ? 'none' : 'block',
           position: isMobile ? 'fixed' : 'absolute',
-          top: isMobile ? 'auto' : 20,
-          bottom: isMobile ? 55 : 'auto',
-          right: isMobile ? 10 : 20,
-          left: isMobile ? 10 : 'auto',
-          background: 'rgba(0,0,0,0.75)',
+          top: isMobile ? 0 : 20,
+          bottom: isMobile ? 0 : 'auto',
+          right: isMobile ? 0 : 20,
+          left: isMobile ? 0 : 'auto',
+          background: isMobile ? 'rgba(10,0,21,0.96)' : 'rgba(0,0,0,0.75)',
           color: 'white',
-          padding: isMobile ? '8px 10px' : '12px 16px',
-          borderRadius: 12,
+          padding: isMobile ? '14px 14px max(env(safe-area-inset-bottom, 14px), 14px)' : '12px 16px',
+          borderRadius: isMobile ? 0 : 12,
           fontFamily: 'monospace',
-          zIndex: 9999,
-          minWidth: isMobile ? 0 : 220,
+          zIndex: 10006,
           overflowY: 'auto',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          maxHeight: isMobile ? '40vh' : 'calc(100vh - 100px)',
+          backdropFilter: isMobile ? 'none' : 'blur(8px)',
+          border: isMobile ? 'none' : '1px solid rgba(255,255,255,0.1)',
+          maxHeight: isMobile ? '100%' : 'calc(100vh - 100px)',
+          minWidth: isMobile ? '100%' : 220,
+          animation: isMobile ? 'slideInRight 0.2s ease-out' : 'none',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
-        <div style={{ fontSize: isMobile ? 12 : 14, fontWeight: 'bold', marginBottom: 6, color: '#c084fc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {isMobile && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 14, fontWeight: 'bold', color: '#c084fc' }}>Demon List</span>
+            <button
+              onClick={() => setShowMobileList(false)}
+              style={{
+                background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
+                fontSize: 20, cursor: 'pointer', width: 40, height: 40,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        <div style={{ display: isMobile ? 'none' : 'flex', fontSize: isMobile ? 12 : 14, fontWeight: 'bold', marginBottom: 6, color: '#c084fc', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>Demon List</span>
           <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
             {user ? (
@@ -751,24 +904,25 @@ function UIOverlay({ config }) {
           transform: 'translateX(-50%)',
           background: 'rgba(0,0,0,0.6)',
           color: 'rgba(255,255,255,0.5)',
-          padding: isMobile ? '4px 10px' : '8px 16px',
+          padding: isMobile ? '6px 14px' : '8px 16px',
           borderRadius: 8,
           fontFamily: 'monospace',
-          fontSize: isMobile ? 9 : 12,
+          fontSize: isMobile ? 10 : 12,
           zIndex: 9999,
           backdropFilter: 'blur(4px)',
           whiteSpace: 'nowrap',
         }}
       >
-          {isMobile ? 'Drag · Scroll · Tap' : 'Drag to rotate · Scroll to zoom · Click for details'}
+        {isMobile ? 'Drag · Scroll · Tap' : 'Drag to rotate · Scroll to zoom · Click for details'}
+        {!isMobile && (
+          <>
           <span
             onClick={takeScreenshot}
             style={{
-              marginLeft: isMobile ? 8 : 12,
+              marginLeft: 12,
               textDecoration: 'underline',
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
             }}
           >
             screenshot
@@ -776,40 +930,33 @@ function UIOverlay({ config }) {
           <span
             onClick={() => setShowDocs(true)}
             style={{
-              marginLeft: isMobile ? 8 : 12,
+              marginLeft: 12,
               textDecoration: 'underline',
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
             }}
           >
             docs
           </span>
-
           <span
             onClick={() => setShowSettings(true)}
             style={{
-              marginLeft: isMobile ? 8 : 12,
+              marginLeft: 12,
               textDecoration: 'underline',
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
             }}
           >
             settings
           </span>
           {debugEnabled && (
             <span
-              onClick={() => {
-                const result = perf.copyDump()
-                alert(result)
-              }}
+              onClick={() => { const r = perf.copyDump(); alert(r) }}
               style={{
-                marginLeft: isMobile ? 8 : 12,
+                marginLeft: 12,
                 textDecoration: 'underline',
                 cursor: 'pointer',
                 color: '#ff6b6b',
-                padding: isMobile ? '4px 2px' : 0,
               }}
             >
               📋 debug
@@ -818,25 +965,21 @@ function UIOverlay({ config }) {
           {debugEnabled && (<>
           <span
             onClick={() => {
-              if (typeof window.__downloadRenderDump === 'function') {
-                window.__downloadRenderDump()
-              } else {
-                console.warn('[UIOverlay] Render debug not loaded yet')
-              }
+              if (typeof window.__downloadRenderDump === 'function') window.__downloadRenderDump()
+              else console.warn('[UIOverlay] Render debug not loaded yet')
             }}
             style={{
-              marginLeft: isMobile ? 8 : 12,
+              marginLeft: 12,
               textDecoration: 'underline',
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
             }}
           >
             dump
           </span>
           <span
             style={{
-              marginLeft: isMobile ? 8 : 12,
+              marginLeft: 12,
               opacity: 0.5,
               color: stutterStats.jitterScore > 90 ? 'rgba(255,255,255,0.5)' : stutterStats.jitterScore > 70 ? '#fbbf24' : '#ff4444',
             }}
@@ -855,7 +998,6 @@ function UIOverlay({ config }) {
               textDecoration: 'underline',
               cursor: 'pointer',
               color: stutterStats.recording ? '#ff4444' : 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
             }}
           >
             {stutterStats.recording ? '⏹ rec' : '⏺ rec'}
@@ -867,12 +1009,13 @@ function UIOverlay({ config }) {
               textDecoration: 'underline',
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.4)',
-              padding: isMobile ? '4px 2px' : 0,
             }}
           >
             ⬇sd
           </span>
           </>)}
+          </>
+        )}
       </div>
     </>,
     document.body
