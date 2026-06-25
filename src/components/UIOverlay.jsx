@@ -502,25 +502,7 @@ function UIOverlay({ config }) {
           }}
         >
           {config.title} {showLeftDetail ? '▼' : '▶'}
-          <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
-          {config.sponsorUrl && (
-            <span
-              onClick={(e) => { e.stopPropagation(); window.open(config.sponsorUrl, '_blank') }}
-              style={{
-                fontSize: 11,
-                cursor: 'pointer',
-                opacity: 0.7,
-                transition: 'opacity 0.15s',
-                padding: '1px 6px',
-                borderRadius: 4,
-                border: '1px solid rgba(207,188,255,0.2)',
-                background: 'rgba(207,188,255,0.06)',
-              }}
-              title="Support the project"
-            >
-              ☕
-            </span>
-          )}
+          <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v3.7</span>
           <FpsCounter />
           {debugEnabled && <CamPos />}
         </h1>
