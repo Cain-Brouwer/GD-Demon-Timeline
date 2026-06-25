@@ -97,5 +97,5 @@ export function getLevelIndex(level) {
 }
 
 export function getLevelAtIndex(idx) {
-  return LEVELS[Math.max(0, Math.min(idx, LEVELS.length - 1))]
+  return QUALITY_CONFIG[LEVELS[Math.max(0, Math.min(idx, LEVELS.length - 1))]]
 }
