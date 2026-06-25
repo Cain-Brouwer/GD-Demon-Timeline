@@ -66,7 +66,7 @@ export const useTimelineStore = create(
       setYoutubeVideo: (id, soundOnly = false) => set({ youtubeVideoId: id, youtubeSoundOnly: soundOnly }),
       clearYoutubeVideo: () => set({ youtubeVideoId: null, youtubeSoundOnly: false }),
       bloomEnabled: false,
-      setBloomEnabled: (v) => set({ bloomEnabled: v }),
+      setBloomEnabled: (v) => set((s) => ({ bloomEnabled: v, sceneTransitioning: true, sceneKey: s.sceneKey + 1 })),
       cameraPos: { x: 0, y: 0, z: 0 },
       setCameraPos: (pos) => {
         const prev = get().cameraPos
