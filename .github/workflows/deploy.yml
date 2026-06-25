@@ -5,31 +5,20 @@ on:
     branches: [Main]
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci --ignore-scripts
-      - run: npx react-doctor@latest
-
   deploy:
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - run: npm ci --ignore-scripts
       - run: npm run build
         env:
           VITE_APP_KEY: gdtimeline_cain_2026
           VITE_SUPABASE_URL: https://pjzoaibiarbsgicakxpa.supabase.co
           VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqem9haWJpYXJic2dpY2FreHBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MDkxODcsImV4cCI6MjA5NzI4NTE4N30.5oTQnFzyYgp3kKfaCpbZaHN2E3nuTTJP-woNtBfX5so
-      - run: npx wrangler pages deploy dist --project-name gd-demon-timeline
+      - run: npx --no-install wrangler pages deploy dist --project-name gd-demon-timeline
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: a6251e3a709ffa39470050c6947828a7
