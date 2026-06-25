@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { perf } from '../lib/perfDebug'
 
@@ -53,7 +53,9 @@ function createVaryingTube(curve, segments, radialSegments, radiusFn) {
 
 function TimelineLines({ demons }) {
   const partRef = useRef()
+  const groupRef = useRef()
   const posRef = useRef(null)
+  const { camera } = useThree()
 
   const curve = useMemo(() => {
     if (demons.length < 2) return null
@@ -101,25 +103,40 @@ function TimelineLines({ demons }) {
         pos[i * 3 + 2] = _tlPoint.z
       }
       partRef.current.geometry.attributes.position.needsUpdate = true
+
+      if (groupRef.current && demons.length > 0) {
+        let sumX = 0, sumY = 0, sumZ = 0
+        for (let i = 0; i < demons.length; i++) {
+          sumX += demons[i].position[0]
+          sumY += demons[i].position[1] || 0
+          sumZ += demons[i].position[2] || 0
+        }
+        _tlPoint.set(sumX / demons.length, sumY / demons.length, sumZ / demons.length)
+        const dist = camera.position.distanceTo(_tlPoint)
+        const tlOrder = Math.round(-dist * 50) * 10000 - 500
+        groupRef.current.children.forEach((child, i) => {
+          child.renderOrder = tlOrder + i
+        })
+      }
+
       end()
     } catch (e) { console.warn('[useFrame TimelineLines]', e) }
   })
 
   if (!curve || demons.length < 2) return null
 
-  const tlOrder = -5000
   return (
-    <group>
-      <mesh geometry={glowGeo} renderOrder={tlOrder}>
+    <group ref={groupRef}>
+      <mesh geometry={glowGeo}>
         <meshBasicMaterial color="white" transparent opacity={0.06} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      <mesh geometry={coreGeo} renderOrder={tlOrder + 1}>
+      <mesh geometry={coreGeo}>
         <meshBasicMaterial color="white" transparent opacity={0.25} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      <mesh geometry={coreGeo} renderOrder={tlOrder + 2}>
+      <mesh geometry={coreGeo}>
         <meshBasicMaterial color="#c084fc" transparent opacity={0.1} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-      <points ref={partRef} renderOrder={tlOrder + 3}>
+      <points ref={partRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" count={pCount} array={initPos} itemSize={3} />
         </bufferGeometry>

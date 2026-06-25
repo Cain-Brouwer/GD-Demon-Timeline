@@ -574,6 +574,22 @@ function BlackHole() {
     selectDemon(TON_618_DATA)
   }
 
+  const bhPos = useRef(new THREE.Vector3(80, -40, -300))
+
+  useFrame((state) => {
+    const end = perf.time('BlackHole')
+    if (!groupRef.current) { end(); return }
+    const dist = state.camera.position.distanceTo(bhPos.current)
+    const order = Math.round(-dist * 50) * 10000 + 5
+    groupRef.current.children.forEach((child) => {
+      if (child.isMesh || child.isGroup) {
+        child.renderOrder = order
+        child.traverse((c) => { if (c.isMesh) c.renderOrder = order })
+      }
+    })
+    end()
+  })
+
   return (
     <group ref={groupRef} position={[80, -40, -300]} scale={[0.15, 0.15, 0.15]}>
       <primitive object={scene} />
