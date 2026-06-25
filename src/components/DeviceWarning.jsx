@@ -10,6 +10,9 @@ function DeviceWarning({ onClose }) {
   const [testing, setTesting] = useState(false)
   const [result, setResult] = useState(null)
   const [deviceInfo, setDeviceInfo] = useState(null)
+  const [dismissed, setDismissed] = useState(false)
+
+  if (dismissed) return null
 
   useEffect(() => {
     detectDevice().then(setDeviceInfo)
@@ -27,6 +30,7 @@ function DeviceWarning({ onClose }) {
       setQualityLevelIndex(deviceInfo.recommendedLevel)
     }
     setPerformanceTested(true)
+    setDismissed(true)
     onClose()
   }
 
@@ -132,24 +136,6 @@ function DeviceWarning({ onClose }) {
           </button>
         </div>
 
-        {result && (
-          <div style={{ marginTop: 12 }}>
-            <button
-              onClick={handleSkip}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'rgba(255,255,255,0.4)',
-                fontSize: 12,
-                fontFamily: 'monospace',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
-            >
-              Continue
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )
