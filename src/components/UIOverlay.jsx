@@ -760,7 +760,7 @@ function UIOverlay({ config }) {
           whiteSpace: 'nowrap',
         }}
       >
-          {isMobile ? 'Drag · Scroll · Hover' : 'Drag to rotate · Scroll to zoom · Hover for details'}
+          {isMobile ? 'Drag · Scroll · Tap' : 'Drag to rotate · Scroll to zoom · Click for details'}
           <span
             onClick={takeScreenshot}
             style={{
