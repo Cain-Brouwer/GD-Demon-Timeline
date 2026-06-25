@@ -16,6 +16,8 @@ const SETTINGS = [
 function SettingsModal({ onClose }) {
   const renderSettings = useTimelineStore((s) => s.renderSettings)
   const setRenderSetting = useTimelineStore((s) => s.setRenderSetting)
+  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
+  const setBloomEnabled = useTimelineStore((s) => s.setBloomEnabled)
   const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
   const setQualityLevelIndex = useTimelineStore((s) => s.setQualityLevelIndex)
   const qualityMode = useTimelineStore((s) => s.qualityMode)
@@ -170,6 +172,25 @@ function SettingsModal({ onClose }) {
             </div>
           </label>
         ))}
+        <label
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '8px 0',
+            cursor: 'pointer',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={bloomEnabled}
+            onChange={() => setBloomEnabled(!bloomEnabled)}
+            style={{ accentColor: '#c084fc', width: 16, height: 16 }}
+          />
+          <div>
+            <div style={{ fontSize: 13 }}>Bloom</div>
+            <div style={{ fontSize: 10, opacity: 0.4, marginTop: 2 }}>Bloom post-processing glow — resource intensive on desktop GPUs</div>
+          </div>
+        </label>
 
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
           <button
