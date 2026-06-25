@@ -26,7 +26,7 @@ function DeviceWarning({ onClose }) {
   }
 
   const handleSkip = () => {
-    if (deviceInfo && deviceInfo.recommendedLevel != null) {
+    if (!result && deviceInfo && deviceInfo.recommendedLevel != null) {
       setQualityLevelIndex(deviceInfo.recommendedLevel)
     }
     setPerformanceTested(true)
