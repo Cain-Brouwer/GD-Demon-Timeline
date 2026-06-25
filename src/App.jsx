@@ -99,8 +99,11 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) setUser(session.user)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      if (event === 'SIGNED_IN') {
+        useTimelineStore.getState().setPerformanceTested(false)
+      }
     })
     return () => subscription.unsubscribe()
   }, [setUser])
@@ -166,7 +169,7 @@ function App() {
       <UIOverlay config={config} />
       <YouTubeModal />
       <YouTubeMiniPlayer key={youtubeVideoId || 'none'} />
-      {!performanceTested && <DeviceWarning onClose={() => {}} />}
+      {(!user || !performanceTested) && <DeviceWarning onClose={() => {}} />}
     </div>
   )
 }
