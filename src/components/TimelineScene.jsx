@@ -323,7 +323,7 @@ function Starfield({ bounds, qualityLevelIndex }) {
   )
 }
 
-function Nebula({ bounds, qualityLevelIndex }) {
+function Nebula({ bounds, qualityLevelIndex, bloomEnabled }) {
   const config = getLevelConfig(LEVELS[qualityLevelIndex])
   const nebulaCount = config.nebulaCount
   
@@ -406,7 +406,7 @@ function Nebula({ bounds, qualityLevelIndex }) {
         sizeAttenuation
         vertexColors
         transparent
-        opacity={0.04}
+        opacity={bloomEnabled ? 0.04 : 0.18}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
@@ -940,7 +940,7 @@ function SceneContent() {
       <OrbitControls enableZoom enablePan enableRotate autoRotate={false} makeDefault />
       <WASDControls />
 
-      {showNebula && <Nebula bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
+      {showNebula && <Nebula bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} bloomEnabled={bloomEnabled} />}
       {showStarfield && <Starfield bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
       {showParticles && <FloatingParticles bounds={timelineBounds} qualityLevelIndex={qualityLevelIndex} />}
       {showShootingStars && <ShootingStars bounds={timelineBounds} />}
