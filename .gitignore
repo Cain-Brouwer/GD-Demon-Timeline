@@ -33,3 +33,4 @@ dist-ssr
 
 # Session knowledge (credentials, API keys)
 AGENTS.md
+SESSION_KNOWLEDGE.md
