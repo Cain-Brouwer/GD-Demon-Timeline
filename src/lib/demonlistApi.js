@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_DEMONLIST_API_URL || 'https://api.demonlist.org'
 
 export async function fetchClassicDemons() {
-  const res = await fetch(`${API_BASE}/level/classic/list?limit=1000`, {
+  const res = await fetch(`${API_BASE}/level/classic/list?limit=2000`, {
     headers: { Accept: 'application/json' },
   })
   if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
