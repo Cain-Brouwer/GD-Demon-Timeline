@@ -103,7 +103,8 @@ export const useTimelineStore = create(
               if (avg >= 55 && p10 >= 45) idx = 3
               else if (avg >= 40 && p10 >= 30) idx = 2
               else if (avg >= 25) idx = 1
-              set((s) => ({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, sceneTransitioning: true, sceneKey: s.sceneKey + 1 }))
+              const nebulaIntensity = [0.3, 0.5, 0.8, 1.0, 1.5][idx] ?? 1
+              set((s) => ({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, sceneTransitioning: true, sceneKey: s.sceneKey + 1, renderSettings: { ...s.renderSettings, nebulaIntensity } }))
               resolve(LEVELS[idx])
               return
             }
