@@ -129,6 +129,10 @@ export const useTimelineStore = create(
       setRenderSetting: (key, value) => set((s) => ({
         renderSettings: { ...s.renderSettings, [key]: value }
       })),
+      getRenderSetting: (key, fallback) => {
+        const val = get().renderSettings[key]
+        return val !== undefined ? val : fallback
+      },
       showSettings: false,
       setShowSettings: (v) => set({ showSettings: v }),
 
@@ -251,6 +255,14 @@ export const useTimelineStore = create(
         qualityLevelIndex: state.qualityLevelIndex,
         qualityMode: state.qualityMode,
         performanceTested: state.performanceTested,
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...persisted,
+        renderSettings: {
+          ...current.renderSettings,
+          ...(persisted.renderSettings || {}),
+        },
       }),
     }
   )

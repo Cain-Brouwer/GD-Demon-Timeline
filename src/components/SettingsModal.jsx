@@ -209,12 +209,12 @@ function SettingsModal({ onClose }) {
                   min={sliderMin}
                   max={sliderMax}
                   step={sliderStep}
-                  value={renderSettings[hasSlider]}
+                  value={renderSettings[hasSlider] ?? 1}
                   onChange={(e) => setRenderSetting(hasSlider, parseFloat(e.target.value))}
                   style={{ flex: 1, accentColor: '#c084fc', height: 4 }}
                 />
                 <span style={{ fontSize: 10, opacity: 0.6, minWidth: 24, textAlign: 'right', fontFamily: 'monospace' }}>
-                  {renderSettings[hasSlider].toFixed(1)}
+                  {(renderSettings[hasSlider] ?? 1).toFixed(1)}
                 </span>
               </div>
             )}
