@@ -9,6 +9,7 @@ import { supabase } from './lib/supabase'
 import demonData from './data/demons.json'
 import config from './timeline.config'
 import LoadingScreen from './components/LoadingScreen'
+import TransitionOverlay from './components/TransitionOverlay'
 import './App.css'
 
 const TimelineScene = lazy(() => import('./components/TimelineScene'))
@@ -161,6 +162,7 @@ function App() {
       <Suspense fallback={<LoadingScreen />}>
         <TimelineScene />
       </Suspense>
+      <TransitionOverlay />
       <UIOverlay config={config} />
       <YouTubeModal />
       <YouTubeMiniPlayer key={youtubeVideoId || 'none'} />

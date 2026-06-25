@@ -882,8 +882,24 @@ function SceneContent() {
   const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
   const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
   const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
+  const sceneTransitioning = useTimelineStore((s) => s.sceneTransitioning)
+  const setSceneTransitioning = useTimelineStore((s) => s.setSceneTransitioning)
   const qConfig = getLevelConfig(LEVELS[qualityLevelIndex])
   const textures = useTexture(ICON_MAP)
+
+  useEffect(() => {
+    if (!sceneTransitioning) return
+    let f1, f2
+    f1 = requestAnimationFrame(() => {
+      f2 = requestAnimationFrame(() => {
+        setSceneTransitioning(false)
+      })
+    })
+    return () => {
+      cancelAnimationFrame(f1)
+      if (f2) cancelAnimationFrame(f2)
+    }
+  }, [sceneTransitioning, setSceneTransitioning])
 
   const timelineBounds = useMemo(() => {
     if (demons.length === 0) return { centerX: 0, width: 400 }

@@ -73,8 +73,10 @@ export const useTimelineStore = create(
         set({ cameraPos: pos })
       },
 
+      sceneTransitioning: false,
+      setSceneTransitioning: (v) => set({ sceneTransitioning: v }),
       qualityLevelIndex: 3,
-      setQualityLevelIndex: (idx) => set({ qualityLevelIndex: idx }),
+      setQualityLevelIndex: (idx) => set({ qualityLevelIndex: idx, sceneTransitioning: true }),
       qualityMode: 'auto',
       setQualityMode: (mode) => set({ qualityMode: mode }),
       performanceTested: false,
@@ -99,7 +101,7 @@ export const useTimelineStore = create(
               if (avg >= 55 && p10 >= 45) idx = 3
               else if (avg >= 40 && p10 >= 30) idx = 2
               else if (avg >= 25) idx = 1
-              set({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true })
+              set({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, sceneTransitioning: true })
               resolve(LEVELS[idx])
               return
             }
