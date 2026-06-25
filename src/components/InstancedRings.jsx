@@ -56,7 +56,8 @@ function InstancedRings({ demons, ringSegments }) {
       tempVec3.set(x, 0, z)
       const dist = camera.position.distanceTo(tempVec3)
 
-      const s = dist < 120 ? (0.8 + (isFuture ? 0 : 0)) : 0.001
+      const screenScale = Math.max(0.3, dist / 50)
+      const s = dist < 120 ? 0.5 * screenScale : 0.001
       const rotZ = t * 0.008 + i * 0.1
       const rotX = 0.4 + Math.sin(t * 0.3 + x) * 0.1
 
