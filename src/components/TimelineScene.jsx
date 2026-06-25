@@ -909,6 +909,7 @@ function SceneContent() {
   const showDemonGlow = useTimelineStore((s) => s.renderSettings.demonGlow)
   const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
   const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
+  const bloomEnabled = useTimelineStore((s) => s.bloomEnabled)
   const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
   const qConfig = getLevelConfig(LEVELS[qualityLevelIndex])
   const textures = useTexture(ICON_MAP)
