@@ -6,6 +6,17 @@ const sections = [
     items: [
       'Drag to rotate the camera around the timeline.',
       'Scroll to zoom in and out.',
+      'WASD to move through the scene (disabled while typing in a text field).',
+    ],
+  },
+  {
+    title: 'Quality & Performance',
+    items: [
+      'Click "quality" in the bottom bar to open settings.',
+      'Choose from 5 levels: Potato, Low, Medium, High, Ultra.',
+      'Enable "Auto" to let the app adjust quality based on your FPS.',
+      'Run a performance test to get a recommended level.',
+      'Toggle Bloom in the Render Toggles section.',
     ],
   },
   {
@@ -14,13 +25,15 @@ const sections = [
       '←/↑ or →/↓ — Select previous/next demon.',
       'Esc — Close tooltip, modal, or YouTube player.',
       'Ctrl+F — Focus the search box.',
+      'WASD — Move camera (disabled when typing in inputs).',
+      'Add ?debug to the URL for frame profiling and stutter debug.',
     ],
   },
   {
     title: 'Demon Spheres',
     items: [
       'Each demon is a sphere with its difficulty icon.',
-      'Spheres smoothly scale up on hover or when selected.',
+      'Spheres smoothly scale up when selected.',
       'Click a sphere to open the tooltip with full details.',
       'Future demons appear greyed out with a dashed border.',
     ],
@@ -32,6 +45,7 @@ const sections = [
       'Click "+ extra info" to see music credits and description.',
       'Use "▶ Watch Showcase" to open the YouTube video.',
       'Use "♫ Sound Only" to play only the audio.',
+      'Use "✎ Edit" to modify the demon.',
     ],
   },
   {
@@ -65,10 +79,13 @@ const sections = [
   {
     title: 'Add / Edit / Remove',
     items: [
-      'Click "+ Add Custom Demon" to add a new demon.',
+      'Click "+ Add Custom Demon" to open the add form.',
+      'Use the "Search GD" tab to find demons from the official server (300ms live search).',
+      'Select a search result to auto-fill name, creator, difficulty, and description.',
+      'Set a custom date beaten when status is "Beaten".',
       'Use the "✎ Edit" button in any tooltip to edit a demon.',
       'Click ✕ to remove a demon (type the name to confirm).',
-      'Set position ID to insert at a specific spot.',
+      'Use position ID to insert at a specific spot.',
     ],
   },
   {
