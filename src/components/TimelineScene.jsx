@@ -882,50 +882,8 @@ function SceneContent() {
   const showDemonRings = useTimelineStore((s) => s.renderSettings.demonRings)
   const showDemonLabels = useTimelineStore((s) => s.renderSettings.demonLabels)
   const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
-  const sceneTransitioning = useTimelineStore((s) => s.sceneTransitioning)
-  const setSceneTransitioning = useTimelineStore((s) => s.setSceneTransitioning)
   const qConfig = getLevelConfig(LEVELS[qualityLevelIndex])
   const textures = useTexture(ICON_MAP)
-
-  useEffect(() => {
-    if (!sceneTransitioning) return
-
-    const MIN_WAIT = 1000
-    const STABLE_COUNT = 3
-    const MAX_WAIT = 5000
-
-    let stableFrames = 0
-    let prevTime = performance.now()
-    let rafId
-    const startTime = prevTime
-
-    const check = () => {
-      const now = performance.now()
-      const delta = now - prevTime
-      prevTime = now
-
-      if (delta < 100) {
-        stableFrames++
-      } else {
-        stableFrames = 0
-      }
-
-      if (stableFrames >= STABLE_COUNT && now - startTime >= MIN_WAIT) {
-        setSceneTransitioning(false)
-        return
-      }
-
-      if (now - startTime >= MAX_WAIT) {
-        setSceneTransitioning(false)
-        return
-      }
-
-      rafId = requestAnimationFrame(check)
-    }
-
-    rafId = requestAnimationFrame(check)
-    return () => cancelAnimationFrame(rafId)
-  }, [sceneTransitioning, setSceneTransitioning])
 
   const timelineBounds = useMemo(() => {
     if (demons.length === 0) return { centerX: 0, width: 400 }
@@ -976,6 +934,8 @@ function SceneContent() {
 
 function TimelineScene() {
   const clearSelection = useTimelineStore((s) => s.clearSelection)
+  const setSceneTransitioning = useTimelineStore((s) => s.setSceneTransitioning)
+  const sceneKey = useTimelineStore((s) => s.sceneKey)
   const debugEnabled = useMemo(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'),
     []
@@ -983,11 +943,13 @@ function TimelineScene() {
 
   return (
     <Canvas
+      key={sceneKey}
       camera={{ position: [0, 30, 50], fov: 50 }}
       dpr={typeof window !== 'undefined' ? window.devicePixelRatio : 1}
       frameloop="always"
       style={{ background: '#0a0015', width: '100%', height: '100%', contain: 'strict', willChange: 'transform' }}
       onPointerMissed={clearSelection}
+      onCreated={() => setSceneTransitioning(false)}
       gl={{ preserveDrawingBuffer: debugEnabled, powerPreference: 'high-performance', antialias: true }}
     >
       <SceneContent />

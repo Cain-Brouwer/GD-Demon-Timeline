@@ -75,8 +75,9 @@ export const useTimelineStore = create(
 
       sceneTransitioning: false,
       setSceneTransitioning: (v) => set({ sceneTransitioning: v }),
+      sceneKey: 0,
       qualityLevelIndex: 3,
-      setQualityLevelIndex: (idx) => set({ qualityLevelIndex: idx, sceneTransitioning: true }),
+      setQualityLevelIndex: (idx) => set((s) => ({ qualityLevelIndex: idx, sceneTransitioning: true, sceneKey: s.sceneKey + 1 })),
       qualityMode: 'auto',
       setQualityMode: (mode) => set({ qualityMode: mode }),
       performanceTested: false,
@@ -101,7 +102,7 @@ export const useTimelineStore = create(
               if (avg >= 55 && p10 >= 45) idx = 3
               else if (avg >= 40 && p10 >= 30) idx = 2
               else if (avg >= 25) idx = 1
-              set({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, sceneTransitioning: true })
+              set((s) => ({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, sceneTransitioning: true, sceneKey: s.sceneKey + 1 }))
               resolve(LEVELS[idx])
               return
             }
