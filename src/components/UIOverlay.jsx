@@ -195,6 +195,7 @@ function UIOverlay({ config }) {
     user ? { icon: '🚪', label: 'Sign Out', onClick: signOut, color: '#ff6b6b' } : null,
     demons.length > 0 ? { icon: '📊', label: 'Statistics', onClick: () => setShowStats(true) } : null,
     { icon: '⇄', label: 'Import / Export', onClick: () => setShowImportExport(true) },
+    config.sponsorUrl ? { icon: '☕', label: 'Sponsor', onClick: () => window.open(config.sponsorUrl, '_blank') } : null,
   ].filter(Boolean)
 
   return createPortal(
@@ -502,6 +503,15 @@ function UIOverlay({ config }) {
         >
           {config.title} {showLeftDetail ? '▼' : '▶'}
           <span style={{ fontSize: 9, background: 'rgba(192,132,252,0.2)', color: '#c084fc', padding: '2px 6px', borderRadius: 4 }}>v2.0</span>
+          {config.sponsorUrl && (
+            <span
+              onClick={(e) => { e.stopPropagation(); window.open(config.sponsorUrl, '_blank') }}
+              style={{ fontSize: 12, cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.15s' }}
+              title="Support the project"
+            >
+              ☕
+            </span>
+          )}
           <FpsCounter />
           {debugEnabled && <CamPos />}
         </h1>

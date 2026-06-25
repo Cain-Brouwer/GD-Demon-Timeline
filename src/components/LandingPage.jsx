@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTimelineStore } from '../store/timelineStore'
 import { supabase } from '../lib/supabase'
+import config from '../timeline.config'
 import AuthModal from './AuthModal'
 import SettingsModal from './SettingsModal'
 
@@ -419,6 +420,79 @@ function LandingPage({ onEnter }) {
           >
             Enter Timeline
           </button>
+        </div>
+
+        {/* Sponsor */}
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 4,
+            padding: '20px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
+          <span style={{ fontSize: 24, lineHeight: 1 }}>☕</span>
+          <div>
+            <div
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: 14,
+                fontWeight: 600,
+                color: '#cfbcff',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Support the Project
+            </div>
+            <div
+              style={{
+                fontSize: 12,
+                color: '#cbc4d2',
+                fontFamily: 'Inter, sans-serif',
+                marginTop: 2,
+              }}
+            >
+              Hosting, domain, and development costs add up. Help keep the timeline running.
+            </div>
+          </div>
+          <a
+            href={config.sponsorUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              padding: '10px 24px',
+              border: '1px solid #cfbcff',
+              borderRadius: 4,
+              background: '#cfbcff',
+              color: '#0a0a0a',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              transition: 'box-shadow 0.2s, transform 0.15s',
+              boxShadow: '0 0 20px rgba(207,188,255,0.15)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 0 40px rgba(207,188,255,0.35)'
+              e.currentTarget.style.transform = 'scale(1.03)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 0 20px rgba(207,188,255,0.15)'
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+          >
+            ☕ Buy me a coffee
+          </a>
         </div>
 
         {/* Footer */}
