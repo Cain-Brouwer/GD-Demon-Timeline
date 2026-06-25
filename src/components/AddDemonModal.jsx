@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTimelineStore } from '../store/timelineStore'
+import { searchGdLevels, mapGdLevelToDemon } from '../lib/gdApi'
 
 const DIFFICULTIES = ['Easy Demon', 'Medium Demon', 'Hard Demon', 'Insane Demon', 'Extreme Demon']
 
@@ -15,10 +16,6 @@ const DIFFICULTY_COLORS = {
 function AddDemonModal({ onClose }) {
   const addDemon = useTimelineStore((s) => s.addDemon)
   const demons = useTimelineStore((s) => s.demons)
-  const officialDemons = useTimelineStore((s) => s.officialDemons)
-  const officialDemonsLoading = useTimelineStore((s) => s.officialDemonsLoading)
-  const officialDemonsError = useTimelineStore((s) => s.officialDemonsError)
-  const fetchOfficialDemons = useTimelineStore((s) => s.fetchOfficialDemons)
 
   const [mode, setMode] = useState('custom')
   const [name, setName] = useState('')
@@ -32,29 +29,40 @@ function AddDemonModal({ onClose }) {
   const [description, setDescription] = useState('')
   const [dateBeaten, setDateBeaten] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState(null)
+  const [searchTotal, setSearchTotal] = useState(0)
+  const debounceRef = useRef(null)
 
   const todayStr = new Date().toISOString().split('T')[0]
   const maxId = demons.length > 0 ? Math.max(...demons.map((d) => d.id)) : 0
   const suggestedId = maxId + 1
 
   useEffect(() => {
-    if (mode === 'browse' && officialDemons.length === 0 && !officialDemonsLoading) {
-      fetchOfficialDemons()
-    }
-  }, [mode, officialDemons.length, officialDemonsLoading, fetchOfficialDemons])
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!searchQuery.trim()) { setSearchResults([]); setSearchTotal(0); setSearchError(null); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearchLoading(true)
+      setSearchError(null)
+      try {
+        const data = await searchGdLevels(searchQuery.trim())
+        setSearchResults(data.levels || [])
+        setSearchTotal(data.total || 0)
+      } catch (e) {
+        setSearchError(e.message)
+        setSearchResults([])
+      }
+      setSearchLoading(false)
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [searchQuery])
 
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return officialDemons
-    const q = searchQuery.toLowerCase()
-    return officialDemons.filter((d) => d.name.toLowerCase().includes(q) || (d.creator || '').toLowerCase().includes(q))
-  }, [officialDemons, searchQuery])
-
-  const handleSelectFromList = (apiDemon) => {
-    setName(apiDemon.name)
-    setCreator(apiDemon.creator || '')
-    setDifficulty(apiDemon.difficulty)
-    setShowcaseUrl(apiDemon.showcaseUrl || '')
-    setDescription(`#${apiDemon.placement} — verifier: ${apiDemon.verifier} — requirement: ${apiDemon.requirement}%`)
+  const handleSelectFromList = (result) => {
+    setName(result.name)
+    setCreator(result.creator || '')
+    setDifficulty(result.difficulty)
+    setDescription(result.description || '')
     setMode('custom')
   }
 
@@ -140,87 +148,76 @@ function AddDemonModal({ onClose }) {
               border: `1px solid ${mode === 'browse' ? '#4a9eff' : 'rgba(255,255,255,0.15)'}`,
             }}
           >
-            Official List
+            Search GD
           </span>
         </div>
 
         {mode === 'browse' ? (
           <div>
-            {officialDemonsLoading && (
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search Geometry Dash levels..."
+              style={inputStyle}
+              autoFocus
+            />
+            <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4, marginBottom: 8 }}>
+              {searchLoading ? 'Searching...' : searchQuery.trim() ? `Found ${searchTotal} levels` : 'Type a level name to search'}
+            </div>
+            {searchError && (
+              <div style={{ fontSize: 12, color: '#ff6b6b', textAlign: 'center', padding: 12 }}>
+                {searchError}
+              </div>
+            )}
+            {searchLoading && (
               <div style={{ fontSize: 12, textAlign: 'center', padding: 20, opacity: 0.5 }}>
-                Loading official demon list...
+                Loading...
               </div>
             )}
-            {officialDemonsError && (
-              <div style={{ fontSize: 12, color: '#ff6b6b', textAlign: 'center', padding: 20 }}>
-                {officialDemonsError}
-              </div>
-            )}
-            {!officialDemonsLoading && !officialDemonsError && officialDemons.length > 0 && (
-              <>
-                <input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search official demons..."
-                  style={{
-                    ...inputStyle,
-                    marginBottom: 8,
-                  }}
-                  autoFocus
-                />
-                <div style={{ maxHeight: 300, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {filtered.map((d) => (
-                    <div
-                      key={d.apiId}
-                      onClick={() => handleSelectFromList(d)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '8px 10px',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                    >
-                      {d.thumbnail ? (
-                        <img src={d.thumbnail} alt="" style={{ width: 48, height: 27, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
-                      ) : (
-                        <div style={{
-                          width: 48, height: 27, borderRadius: 4, flexShrink: 0,
-                          background: DIFFICULTY_COLORS[d.difficulty] || '#333',
-                          opacity: 0.4,
-                        }} />
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {d.name}
-                        </div>
-                        <div style={{ fontSize: 10, opacity: 0.5 }}>
-                          #{d.placement} · {d.creator}
-                        </div>
+            {!searchLoading && !searchError && searchResults.length > 0 && (
+              <div style={{ maxHeight: 300, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {searchResults.map((d) => (
+                  <div
+                    key={d.id}
+                    onClick={() => handleSelectFromList(d)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                  >
+                    <div style={{
+                      width: 4, height: 32, borderRadius: 2, flexShrink: 0,
+                      background: DIFFICULTY_COLORS[d.difficulty] || '#333',
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {d.name}
                       </div>
-                      <div style={{
-                        fontSize: 9,
-                        padding: '2px 6px',
-                        borderRadius: 4,
-                        background: DIFFICULTY_COLORS[d.difficulty] + '33',
-                        color: DIFFICULTY_COLORS[d.difficulty],
-                        flexShrink: 0,
-                      }}>
-                        {d.difficulty.split(' ')[0]}
+                      <div style={{ fontSize: 10, opacity: 0.5 }}>
+                        by {d.creator} · {d.stars}★ · {d.downloads.toLocaleString()} downloads
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div style={{ fontSize: 10, opacity: 0.4, marginTop: 8 }}>
-                  {filtered.length} of {officialDemons.length} demons
-                </div>
-              </>
+                    <div style={{
+                      fontSize: 9,
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      background: DIFFICULTY_COLORS[d.difficulty] + '33',
+                      color: DIFFICULTY_COLORS[d.difficulty],
+                      flexShrink: 0,
+                    }}>
+                      {d.difficulty.split(' ')[0]}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         ) : (

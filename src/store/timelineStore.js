@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import demonData from '../data/demons.json'
 import { LEVELS } from '../lib/qualityConfig'
-import { fetchClassicDemons, mapApiDemonToApp } from '../lib/demonlistApi'
+
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -113,21 +113,7 @@ export const useTimelineStore = create(
         })
       },
 
-      officialDemons: [],
-      officialDemonsLoading: false,
-      officialDemonsError: null,
-      fetchOfficialDemons: async () => {
-        const state = get()
-        if (state.officialDemons.length > 0) return
-        set({ officialDemonsLoading: true, officialDemonsError: null })
-        try {
-          const raw = await fetchClassicDemons()
-          const mapped = raw.map(mapApiDemonToApp)
-          set({ officialDemons: mapped, officialDemonsLoading: false })
-        } catch (e) {
-          set({ officialDemonsLoading: false, officialDemonsError: e.message || 'Failed to fetch demon list' })
-        }
-      },
+
 
       renderSettings: {
         starfield: true,
