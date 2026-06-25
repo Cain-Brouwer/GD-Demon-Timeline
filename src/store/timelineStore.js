@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import demonData from '../data/demons.json'
-import { LEVELS, getLevelAtIndex } from '../lib/qualityConfig'
+import { LEVELS } from '../lib/qualityConfig'
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -74,7 +74,7 @@ export const useTimelineStore = create(
       },
 
       qualityLevelIndex: 3,
-      setQualityLevelIndex: (idx) => set({ qualityLevelIndex: idx, bloomEnabled: getLevelAtIndex(idx).bloomEnabled }),
+      setQualityLevelIndex: (idx) => set({ qualityLevelIndex: idx }),
       qualityMode: 'auto',
       setQualityMode: (mode) => set({ qualityMode: mode }),
       performanceTested: false,
@@ -99,8 +99,7 @@ export const useTimelineStore = create(
               if (avg >= 55 && p10 >= 45) idx = 3
               else if (avg >= 40 && p10 >= 30) idx = 2
               else if (avg >= 25) idx = 1
-              const level = getLevelAtIndex(idx)
-              set({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true, bloomEnabled: level.bloomEnabled })
+              set({ qualityLevelIndex: idx, qualityMode: 'auto', performanceTested: true })
               resolve(LEVELS[idx])
               return
             }

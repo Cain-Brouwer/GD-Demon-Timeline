@@ -829,12 +829,12 @@ function EffectComposerWrapper() {
     return {
       luminanceThreshold: isHighRes ? 0.2 : 0.15,
       luminanceSmoothing: 0.9,
-      intensity: config.bloomIntensity,
+      intensity: config.bloomIntensity || 0.35,
       mipmapBlur: !isHighRes,
-      blur: config.bloomBlur,
-      resolutionScale: config.resolutionScale,
+      blur: config.bloomBlur || 3,
+      resolutionScale: Math.max(0.75, config.resolutionScale),
     }
-  }, [size, qualityLevelIndex])
+  }, [size, qualityLevelIndex, bloomEnabled])
   
   if (!bloomEnabled) return null
   
