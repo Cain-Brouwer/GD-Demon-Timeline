@@ -78,7 +78,10 @@ export const useTimelineStore = create(
       setSceneTransitioning: (v) => set({ sceneTransitioning: v }),
       sceneKey: 0,
       qualityLevelIndex: 3,
-      setQualityLevelIndex: (idx) => set((s) => ({ qualityLevelIndex: idx, sceneTransitioning: true, sceneKey: s.sceneKey + 1 })),
+      setQualityLevelIndex: (idx) => set((s) => {
+        const nebulaIntensity = [0.3, 0.5, 0.8, 1.0, 1.5][idx] ?? 1
+        return { qualityLevelIndex: idx, sceneTransitioning: true, sceneKey: s.sceneKey + 1, renderSettings: { ...s.renderSettings, nebulaIntensity } }
+      }),
       qualityMode: 'auto',
       setQualityMode: (mode) => set({ qualityMode: mode }),
       performanceTested: false,
