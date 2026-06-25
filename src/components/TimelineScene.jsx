@@ -255,8 +255,8 @@ function Starfield({ bounds, qualityLevelIndex }) {
     const siz = new Float32Array(count)
     for (let i = 0; i < count; i++) {
       pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * xRange * 2
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 30
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 80
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 400
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 500
 
       const tint = Math.random()
       if (tint < 0.6) {
@@ -335,8 +335,8 @@ function Nebula({ bounds, qualityLevelIndex }) {
       const c = colorList[Math.floor(Math.random() * colorList.length)]
       const bright = 0.3 + Math.random() * 0.7
       const x = bounds.centerX + (Math.random() - 0.5) * (bounds.width + 200)
-      const y = (Math.random() - 0.5) * 25
-      const z = (Math.random() - 0.5) * 60
+      const y = (Math.random() - 0.5) * 200 + 10
+      const z = (Math.random() - 0.5) * 500
       bd.push({ baseX: x, baseY: y, baseZ: z })
       pos[i * 3] = x
       pos[i * 3 + 1] = y
@@ -532,22 +532,13 @@ const TON_618_DATA = {
   progress: 0,
   keyMechanics: ["Extreme Wave (zero-pixel margins)", "High CPS Spam", "Tight Ship Corridors", "UFO", "Ball"],
   showcaseUrl: "https://www.youtube.com/watch?v=KexhCTpuQZY",
-  position: [60, -15, -30],
+  position: [80, -35, -300],
 }
 
 function BlackHole() {
   const groupRef = useRef()
   const { scene } = useGLTF('/models/black_hole.glb')
   const selectDemon = useTimelineStore((s) => s.selectDemon)
-  const demons = useTimelineStore((s) => s.demons)
-  const bhPos = useRef(new THREE.Vector3(60, -15, -30))
-
-  const bhPosition = useMemo(() => {
-    if (demons.length === 0) return [60, -15, -30]
-    const lastX = Math.max(...demons.map((d) => d.position[0]))
-    bhPos.current.set(lastX + 30, -15, -30)
-    return [lastX + 30, -15, -30]
-  }, [demons])
 
   useEffect(() => {
     if (!scene) return
@@ -583,6 +574,8 @@ function BlackHole() {
     selectDemon(TON_618_DATA)
   }
 
+  const bhPos = useRef(new THREE.Vector3(80, -40, -300))
+
   useFrame((state) => {
     const end = perf.time('BlackHole')
     if (!groupRef.current) { end(); return }
@@ -598,7 +591,7 @@ function BlackHole() {
   })
 
   return (
-    <group ref={groupRef} position={bhPosition} scale={[0.15, 0.15, 0.15]}>
+    <group ref={groupRef} position={[80, -40, -300]} scale={[0.15, 0.15, 0.15]}>
       <primitive object={scene} />
       <mesh onClick={handleClick}>
         <sphereGeometry args={[1000, 16, 16]} />
@@ -778,8 +771,8 @@ function FloatingParticles({ bounds, qualityLevelIndex }) {
     const spd = new Float32Array(particleCount)
     for (let i = 0; i < particleCount; i++) {
       pos[i * 3] = bounds.centerX + (Math.random() - 0.5) * bounds.width * 1.5
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 15
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 30
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 100
+      pos[i * 3 + 2] = (Math.random() - 0.5) * bounds.width * 0.5
       spd[i] = 0.2 + Math.random() * 0.5
     }
     return [pos, spd]
