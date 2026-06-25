@@ -506,7 +506,16 @@ function UIOverlay({ config }) {
           {config.sponsorUrl && (
             <span
               onClick={(e) => { e.stopPropagation(); window.open(config.sponsorUrl, '_blank') }}
-              style={{ fontSize: 12, cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.15s' }}
+              style={{
+                fontSize: 11,
+                cursor: 'pointer',
+                opacity: 0.7,
+                transition: 'opacity 0.15s',
+                padding: '1px 6px',
+                borderRadius: 4,
+                border: '1px solid rgba(207,188,255,0.2)',
+                background: 'rgba(207,188,255,0.06)',
+              }}
               title="Support the project"
             >
               ☕
@@ -958,6 +967,23 @@ function UIOverlay({ config }) {
             }}
           >
             settings
+          </span>
+          <span
+            onClick={() => window.open(config.sponsorUrl, '_blank')}
+            style={{
+              marginLeft: 8,
+              padding: '2px 8px',
+              borderRadius: 4,
+              border: '1px solid rgba(207,188,255,0.3)',
+              background: 'rgba(207,188,255,0.08)',
+              cursor: 'pointer',
+              color: '#cfbcff',
+              fontSize: 11,
+              fontWeight: 'bold',
+              fontFamily: 'monospace',
+            }}
+          >
+            ☕ tip
           </span>
           {debugEnabled && (
             <span
