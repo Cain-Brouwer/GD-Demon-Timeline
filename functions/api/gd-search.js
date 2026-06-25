@@ -47,11 +47,11 @@ function parseGdLevels(text) {
       difficulty,
       creator: creators[kv['6']] || 'Unknown',
       levelId: parseInt(kv['1']) || 0,
-      stars: parseInt(kv['18']) || 0,
+      stars: parseInt(kv['12']) || 0,
       description,
-      downloads: parseInt(kv['10']) || 0,
-      likes: parseInt(kv['14']) || 0,
-      length: parseInt(kv['15']) || 0,
+      downloads: parseInt(kv['7']) || 0,
+      likes: parseInt(kv['10']) || 0,
+      length: parseInt(kv['11']) || 0,
       coins: parseInt(kv['37']) || 0,
       verifiedCoins: kv['38'] === '1',
       epic: parseInt(kv['42']) || 0,
@@ -59,8 +59,8 @@ function parseGdLevels(text) {
       twoPlayer: kv['31'] === '1',
       featureScore: parseInt(kv['19']) || 0,
       copiedID: parseInt(kv['30']) || 0,
-      gameVersion: parseInt(kv['13']) || 0,
-      songID: parseInt(kv['35'] || kv['12']) || 0,
+      gameVersion: parseInt(kv['9']) || 0,
+      songID: parseInt(kv['35'] || kv['27']) || 0,
     })
   }
 
