@@ -734,6 +734,8 @@ function WASDControls() {
 
   useEffect(() => {
     const down = (e) => {
+      const tag = document.activeElement?.tagName || ''
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
       switch (e.code) {
         case 'KeyW': keys.current.w = true; break
         case 'KeyA': keys.current.a = true; break
@@ -743,6 +745,8 @@ function WASDControls() {
       }
     }
     const up = (e) => {
+      const tag = document.activeElement?.tagName || ''
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
       switch (e.code) {
         case 'KeyW': keys.current.w = false; break
         case 'KeyA': keys.current.a = false; break
