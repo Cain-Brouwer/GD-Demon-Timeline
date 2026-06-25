@@ -1,28 +1,30 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTimelineStore } from '../store/timelineStore'
-import { LEVELS, getLevelAtIndex } from '../lib/qualityConfig'
 
 const LOW_FPS_THRESHOLD = 30
 const HIGH_FPS_THRESHOLD = 55
 const LOW_DURATION_MS = 2000
 const HIGH_DURATION_MS = 5000
 const CRITICAL_FPS = 15
+const SANE_MAX_DELTA = 0.1
 
 function FpsMonitor() {
   const qualityLevelIndex = useTimelineStore((s) => s.qualityLevelIndex)
   const setQualityLevelIndex = useTimelineStore((s) => s.setQualityLevelIndex)
   const qualityMode = useTimelineStore((s) => s.qualityMode)
   const performanceTested = useTimelineStore((s) => s.performanceTested)
+  const sceneTransitioning = useTimelineStore((s) => s.sceneTransitioning)
 
   const samples = useRef([])
   const lowStart = useRef(null)
   const highStart = useRef(null)
   const initialLevel = useRef(qualityLevelIndex)
-  const prevLevel = useRef(qualityLevelIndex)
 
   useFrame((_, delta) => {
     if (qualityMode !== 'auto' || !performanceTested) return
+    if (sceneTransitioning) return
+    if (delta > SANE_MAX_DELTA) return
 
     const now = performance.now()
     const fps = delta > 0 ? 1 / delta : 60

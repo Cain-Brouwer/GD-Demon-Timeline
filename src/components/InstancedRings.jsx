@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -29,6 +29,10 @@ function InstancedRings({ demons, ringSegments }) {
     () => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }),
     []
   )
+
+  useEffect(() => {
+    return () => geometry.dispose()
+  }, [geometry])
 
   useFrame((state) => {
     const mesh = meshRef.current
