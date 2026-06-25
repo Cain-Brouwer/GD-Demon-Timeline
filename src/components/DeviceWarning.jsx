@@ -10,9 +10,6 @@ function DeviceWarning({ onClose }) {
   const [testing, setTesting] = useState(false)
   const [result, setResult] = useState(null)
   const [deviceInfo, setDeviceInfo] = useState(null)
-  const [dismissed, setDismissed] = useState(false)
-
-  if (dismissed) return null
 
   useEffect(() => {
     detectDevice().then(setDeviceInfo)
@@ -30,7 +27,6 @@ function DeviceWarning({ onClose }) {
       setQualityLevelIndex(deviceInfo.recommendedLevel)
     }
     setPerformanceTested(true)
-    setDismissed(true)
     onClose()
   }
 

@@ -28,6 +28,7 @@ if (typeof window !== 'undefined') {
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
+  const [warningDismissed, setWarningDismissed] = useState(false)
   const initDemons = useTimelineStore((s) => s.initDemons)
   const setUser = useTimelineStore((s) => s.setUser)
   const user = useTimelineStore((s) => s.user)
@@ -169,7 +170,7 @@ function App() {
       <UIOverlay config={config} />
       <YouTubeModal />
       <YouTubeMiniPlayer key={youtubeVideoId || 'none'} />
-      {(!user || !performanceTested) && <DeviceWarning onClose={() => {}} />}
+      {!warningDismissed && (!user || !performanceTested) && <DeviceWarning onClose={() => setWarningDismissed(true)} />}
     </div>
   )
 }
