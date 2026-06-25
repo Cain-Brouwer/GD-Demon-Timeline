@@ -81,8 +81,16 @@ function Tooltip({ demon }) {
 
         {showExtra && (
           <>
-            {demon.musicTitle && demon.musicArtist && (
+            {demon.source === 'api' && (
               <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4, borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 6 }}>
+                {demon.verifier && <div>Verifier: {demon.verifier}</div>}
+                {demon.publisher && <div>Publisher: {demon.publisher}</div>}
+                {demon.requirement != null && <div>Requirement: {demon.requirement}%</div>}
+                {demon.levelId && <div>Level ID: {demon.levelId}</div>}
+              </div>
+            )}
+            {demon.musicTitle && demon.musicArtist && (
+              <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 4, borderTop: demon.source === 'api' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.15)', paddingTop: 6 }}>
                 {demon.musicTitle} — {demon.musicArtist}
               </div>
             )}
@@ -147,7 +155,7 @@ function Tooltip({ demon }) {
             </button>
           </div>
         )}
-        {demon.name !== 'TON 618' && (
+        {demon.source !== 'api' && demon.name !== 'TON 618' && (
           <button
             onClick={() => setShowEdit(true)}
             style={{

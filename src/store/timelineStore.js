@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import demonData from '../data/demons.json'
 import { LEVELS } from '../lib/qualityConfig'
+import { fetchRankedDemons, mapApiDemonToApp } from '../lib/demonlistApi'
 
 function sortById(demons) {
   return [...demons].sort((a, b) => a.id - b.id)
@@ -112,6 +113,38 @@ export const useTimelineStore = create(
         })
       },
 
+      apiSource: 'local',
+      apiDemons: [],
+      apiLoading: false,
+      apiError: null,
+      localBackup: null,
+      toggleApiSource: () => {
+        const state = get()
+        if (state.apiSource === 'local') {
+          set({ localBackup: state.demons, apiSource: 'api', apiError: null })
+          get().fetchApiDemons()
+        } else {
+          set({
+            demons: state.localBackup || assignPositions(JSON.parse(JSON.stringify(demonData.demons))),
+            apiSource: 'local',
+            apiLoading: false,
+            apiError: null,
+            initialised: true,
+          })
+        }
+      },
+      fetchApiDemons: async () => {
+        set({ apiLoading: true, apiError: null })
+        try {
+          const raw = await fetchRankedDemons()
+          const mapped = raw.map(mapApiDemonToApp)
+          set({ demons: assignPositions(mapped), apiDemons: mapped, apiLoading: false, apiError: null, initialised: true })
+        } catch (e) {
+          console.error('fetchApiDemons error:', e)
+          set({ apiLoading: false, apiError: e.message || 'Failed to fetch demon list' })
+        }
+      },
+
       renderSettings: {
         starfield: true,
         nebula: true,
@@ -136,8 +169,13 @@ export const useTimelineStore = create(
       initDemons: (data) => {
         const state = get()
         if (state.demons.length > 0) return
-        const demons = assignPositions(data)
-        set({ demons, initialised: true })
+        if (state.apiSource === 'api') {
+          set({ apiLoading: true })
+          get().fetchApiDemons()
+        } else {
+          const demons = assignPositions(data)
+          set({ demons, initialised: true })
+        }
       },
 
       addDemon: ({ insertId, beaten, dateBeaten, ...rest }) => {
@@ -247,6 +285,7 @@ export const useTimelineStore = create(
         qualityLevelIndex: state.qualityLevelIndex,
         qualityMode: state.qualityMode,
         performanceTested: state.performanceTested,
+        apiSource: state.apiSource,
       }),
     }
   )
